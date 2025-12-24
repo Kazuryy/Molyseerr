@@ -1,0 +1,127 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  XCODE_VERSION: '15.0'
+  SCHEME: 'Sir Seerr'
+  PLATFORM: 'tvOS Simulator'
+  DEVICE: 'Apple TV'
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Select Xcode version
+      run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+    - name: Show Xcode version
+      run: xcodebuild -version
+
+    - name: Show available destinations
+      run: xcodebuild -scheme "${{ env.SCHEME }}" -showdestinations
+
+    - name: Cache SPM dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          .build
+          ~/Library/Developer/Xcode/DerivedData
+        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+        restore-keys: |
+          ${{ runner.os }}-spm-
+
+    - name: Resolve SPM dependencies
+      run: xcodebuild -resolvePackageDependencies -scheme "${{ env.SCHEME }}"
+
+    - name: Build for tvOS
+      run: |
+        xcodebuild clean build \
+          -scheme "${{ env.SCHEME }}" \
+          -destination "platform=${{ env.PLATFORM }},name=${{ env.DEVICE }}" \
+          -configuration Debug \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          | xcpretty
+
+    - name: Run tests
+      run: |
+        xcodebuild test \
+          -scheme "${{ env.SCHEME }}" \
+          -destination "platform=${{ env.PLATFORM }},name=${{ env.DEVICE }}" \
+          -configuration Debug \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          | xcpretty
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: |
+          build/reports
+          DerivedData/Logs/Test
+
+  lint:
+    name: SwiftLint
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install SwiftLint
+      run: brew install swiftlint
+
+    - name: Run SwiftLint
+      run: swiftlint lint --reporter github-actions-logging
+      continue-on-error: true
+
+  validate-project:
+    name: Validate Project Structure
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check for sensitive files
+      run: |
+        if [ -f "Sir Seerr/SeerrCredentials.swift" ]; then
+          echo "❌ Error: SeerrCredentials.swift should not be committed!"
+          exit 1
+        fi
+        if [ -f ".env" ]; then
+          echo "❌ Error: .env file should not be committed!"
+          exit 1
+        fi
+        echo "✅ No sensitive files found"
+
+    - name: Validate TECH_RULES.md exists
+      run: |
+        if [ ! -f "TECH_RULES.md" ]; then
+          echo "❌ Error: TECH_RULES.md is missing!"
+          exit 1
+        fi
+        echo "✅ TECH_RULES.md found"
+
+    - name: Check documentation files
+      run: |
+        FILES=("README.md" "CONTRIBUTING.md" "LICENSE" "TVOS_ARCH_SPEC.md")
+        for file in "${FILES[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "❌ Error: $file is missing!"
+            exit 1
+          fi
+        done
+        echo "✅ All required documentation files present"

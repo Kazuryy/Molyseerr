@@ -1,0 +1,129 @@
+# Molyseerr - tvOS Application
+# Comprehensive .gitignore for Swift/Xcode/tvOS projects
+
+# ===== Xcode =====
+# Build artifacts
+build/
+DerivedData/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+*.xcuserstate
+*.xcscmblueprint
+*.xcscheme
+!*.xcscheme
+
+# ===== Swift Package Manager =====
+.build/
+.swiftpm/
+Package.resolved
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcworkspace/contents.xcworkspacedata
+/*.gcno
+
+# ===== CocoaPods =====
+Pods/
+*.podspec
+Podfile.lock
+
+# ===== Carthage =====
+Carthage/Build/
+Carthage/Checkouts/
+
+# ===== fastlane =====
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+fastlane/.env*
+fastlane/README.md
+
+# ===== Secrets & Credentials =====
+# CRITICAL: Never commit API keys or credentials
+*.env
+*.env.local
+*.env.production
+*_secrets.swift
+*Secrets.swift
+Secrets.plist
+APIKeys.plist
+Configuration.plist
+
+# Seerr API configuration
+SeerrCredentials.swift
+
+# ===== macOS =====
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# ===== IDE =====
+# VSCode
+.vscode/
+*.code-workspace
+
+# AppCode
+.idea/
+
+# SwiftLint
+.swiftlint.yml.cache
+
+# ===== Testing =====
+*.gcda
+*.gcno
+*.profdata
+coverage/
+test_output/
+
+# ===== Documentation =====
+docs/build/
+docs/_build/
+
+# ===== Temporary files =====
+*.swp
+*.swo
+*~
+.tmp/
+temp/
+
+# ===== Logs =====
+*.log
+logs/
+
+# ===== Other =====
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+timeline.xctimeline
+playground.xcworkspace
+.Rhistory
+
+# ===== Backup files =====
+*.backup
+*.bak
+*~.nib

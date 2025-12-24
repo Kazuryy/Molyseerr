@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  Sir Seerr
+//  Molyseerr
 //
 //  Created by Ronan Jacques on 23/12/2025.
 //
@@ -13,7 +13,7 @@ struct ContentView: View {
             Image(systemName: "globe")
                 .imageScale(.large)
                 .foregroundStyle(.tint)
-            Text("Hello, world!")
+            Text("Hello, world !!")
         }
         .padding()
     }

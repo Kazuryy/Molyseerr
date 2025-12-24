@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		BDCBD9222EFAE94D00FB36AE /* Sir Seerr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Sir Seerr.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BDCBD9222EFAE94D00FB36AE /* Molyseerr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Molyseerr.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		BDCBD9242EFAE94D00FB36AE /* Sir Seerr */ = {
+		BDCBD9242EFAE94D00FB36AE /* Molyseerr */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Sir Seerr";
+			path = Molyseerr;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -32,7 +32,7 @@
 		BDCBD9192EFAE94C00FB36AE = {
 			isa = PBXGroup;
 			children = (
-				BDCBD9242EFAE94D00FB36AE /* Sir Seerr */,
+				BDCBD9242EFAE94D00FB36AE /* Molyseerr */,
 				BDCBD9232EFAE94D00FB36AE /* Products */,
 			);
 			sourceTree = "<group>";
@@ -40,7 +40,7 @@
 		BDCBD9232EFAE94D00FB36AE /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				BDCBD9222EFAE94D00FB36AE /* Sir Seerr.app */,
+				BDCBD9222EFAE94D00FB36AE /* Molyseerr.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,9 +48,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		BDCBD9212EFAE94D00FB36AE /* Sir Seerr */ = {
+		BDCBD9212EFAE94D00FB36AE /* Molyseerr */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = BDCBD92D2EFAE94F00FB36AE /* Build configuration list for PBXNativeTarget "Sir Seerr" */;
+			buildConfigurationList = BDCBD92D2EFAE94F00FB36AE /* Build configuration list for PBXNativeTarget "Molyseerr" */;
 			buildPhases = (
 				BDCBD91E2EFAE94D00FB36AE /* Sources */,
 				BDCBD91F2EFAE94D00FB36AE /* Frameworks */,
@@ -61,13 +61,13 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				BDCBD9242EFAE94D00FB36AE /* Sir Seerr */,
+				BDCBD9242EFAE94D00FB36AE /* Molyseerr */,
 			);
-			name = "Sir Seerr";
+			name = Molyseerr;
 			packageProductDependencies = (
 			);
 			productName = "Sir Seerr";
-			productReference = BDCBD9222EFAE94D00FB36AE /* Sir Seerr.app */;
+			productReference = BDCBD9222EFAE94D00FB36AE /* Molyseerr.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -85,7 +85,7 @@
 					};
 				};
 			};
-			buildConfigurationList = BDCBD91D2EFAE94D00FB36AE /* Build configuration list for PBXProject "Sir Seerr" */;
+			buildConfigurationList = BDCBD91D2EFAE94D00FB36AE /* Build configuration list for PBXProject "Molyseerr" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -99,7 +99,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				BDCBD9212EFAE94D00FB36AE /* Sir Seerr */,
+				BDCBD9212EFAE94D00FB36AE /* Molyseerr */,
 			);
 		};
 /* End PBXProject section */
@@ -307,7 +307,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		BDCBD91D2EFAE94D00FB36AE /* Build configuration list for PBXProject "Sir Seerr" */ = {
+		BDCBD91D2EFAE94D00FB36AE /* Build configuration list for PBXProject "Molyseerr" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BDCBD92B2EFAE94F00FB36AE /* Debug */,
@@ -316,7 +316,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		BDCBD92D2EFAE94F00FB36AE /* Build configuration list for PBXNativeTarget "Sir Seerr" */ = {
+		BDCBD92D2EFAE94F00FB36AE /* Build configuration list for PBXNativeTarget "Molyseerr" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BDCBD92E2EFAE94F00FB36AE /* Debug */,

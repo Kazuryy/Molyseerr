@@ -1,0 +1,106 @@
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! We appreciate your input.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: I'm always frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like to see
+      placeholder: I would like to be able to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions
+      description: Have you considered any alternative solutions or workarounds?
+      placeholder: I've tried... but it doesn't work because...
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature Category
+      description: What type of feature is this?
+      options:
+        - UI/UX Improvement
+        - New Functionality
+        - Performance Enhancement
+        - Accessibility
+        - Integration (Plex/Jellyfin/Emby)
+        - Search/Discovery
+        - Request Management
+        - Settings/Configuration
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority (Your Perspective)
+      description: How important is this feature to you?
+      options:
+        - Nice to have
+        - Would be useful
+        - Important
+        - Critical
+    validations:
+      required: true
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: Mockups/Examples
+      description: If applicable, add mockups, screenshots, or examples from other apps
+      placeholder: Drag and drop images here or link to examples
+
+  - type: textarea
+    id: technical
+    attributes:
+      label: Technical Details (Optional)
+      description: If you have technical implementation ideas, share them here
+      placeholder: This could be implemented by...
+
+  - type: dropdown
+    id: willing-to-contribute
+    attributes:
+      label: Are you willing to contribute to this feature?
+      description: Would you like to work on implementing this feature?
+      options:
+        - "Yes, I can implement this"
+        - "Yes, I can help with testing"
+        - "Yes, I can help with documentation"
+        - "No, but I can provide feedback"
+        - "No"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched for similar feature requests and this is not a duplicate
+          required: true
+        - label: This feature aligns with Sir Seerr's goals (tvOS native Seerr client)
+          required: true
+        - label: I have provided enough detail for the maintainers to understand the request
+          required: true

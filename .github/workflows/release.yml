@@ -1,0 +1,104 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  XCODE_VERSION: '15.0'
+  SCHEME: 'Sir Seerr'
+
+jobs:
+  build-release:
+    name: Build Release
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Select Xcode version
+      run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+    - name: Get version from tag
+      id: version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+    - name: Cache SPM dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          .build
+          ~/Library/Developer/Xcode/DerivedData
+        key: ${{ runner.os }}-spm-release-${{ hashFiles('**/Package.resolved') }}
+
+    - name: Resolve SPM dependencies
+      run: xcodebuild -resolvePackageDependencies -scheme "${{ env.SCHEME }}"
+
+    - name: Build Release
+      run: |
+        xcodebuild clean build \
+          -scheme "${{ env.SCHEME }}" \
+          -configuration Release \
+          -destination "generic/platform=tvOS" \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          | xcpretty
+
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Get commits since last tag
+        PREV_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "")
+        if [ -z "$PREV_TAG" ]; then
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+        else
+          CHANGELOG=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+        fi
+        echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGELOG" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ steps.version.outputs.VERSION }}
+        body: |
+          ## What's Changed
+
+          ${{ steps.changelog.outputs.CHANGELOG }}
+
+          ## Installation
+
+          This is a tvOS application. See [README.md](README.md) for installation instructions.
+
+          **Requirements:**
+          - Apple TV 4th generation or later
+          - tvOS 17.0+
+          - Seerr server instance
+
+          ## Full Changelog
+          https://github.com/${{ github.repository }}/compare/${{ steps.prev_tag.outputs.tag }}...${{ github.ref }}
+        draft: false
+        prerelease: false
+
+  notify:
+    name: Notify on Release
+    runs-on: ubuntu-latest
+    needs: build-release
+
+    steps:
+    - name: Get version
+      id: version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+    - name: Notify (placeholder)
+      run: |
+        echo "🚀 Release ${{ steps.version.outputs.VERSION }} has been created!"
+        echo "Add Discord/Slack notification here if needed"

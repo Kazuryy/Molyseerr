@@ -1,0 +1,65 @@
+name: ❓ Question
+description: Ask a question about Sir Seerr
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question? We're here to help!
+
+        **Note**: For general discussions, consider using [GitHub Discussions](https://github.com/VOTRE_USERNAME/sir-seerr/discussions) instead.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know?
+      placeholder: How do I...?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Question Category
+      description: What is your question about?
+      options:
+        - Installation/Setup
+        - Configuration
+        - Usage/Features
+        - Troubleshooting
+        - Development/Contributing
+        - Seerr Server Integration
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Provide any additional context that might help us answer your question
+      placeholder: I'm trying to... and I've already tried...
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment (if relevant)
+      description: Provide environment details if relevant to your question
+      placeholder: |
+        - Apple TV model:
+        - tvOS version:
+        - Sir Seerr version:
+        - Seerr server version:
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues and discussions for this question
+          required: true
+        - label: I have read the documentation (README, USAGE_GUIDE, etc.)
+          required: true
