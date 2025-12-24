@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  Molyseerr
 //
-//  Created by Ronan Jacques on 23/12/2025.
+//  Created by Kazuryy on 23/12/2025.
 //
 
 import SwiftUI

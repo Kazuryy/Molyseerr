@@ -122,16 +122,16 @@
    - Version: `8.0.0` or later
 
 4. **Configure your Seerr instance**
-   - Create a configuration file (not tracked by git):
-   ```swift
-   // Create: Molyseerr/SeerrCredentials.swift
-   import Foundation
-
-   enum SeerrCredentials {
-       static let baseURL = "http://your-seerr-server.com:5055"
-       static let apiKey = "YOUR_API_KEY_HERE"
-   }
+   - Copy the environment template:
+   ```bash
+   cp .env.example .env
    ```
+   - Edit `.env` with your Seerr server details:
+   ```bash
+   SEERR_BASE_URL=http://your-seerr-server.com:5055
+   SEERR_API_KEY=your_api_key_here
+   ```
+   - ⚠️ **Important**: The `.env` file is git-ignored and will NOT be committed
 
 5. **Build and run** (⌘R)
 
@@ -141,24 +141,25 @@
 
 ### Basic Configuration
 
-```swift
-import SwiftUI
+Molyseerr uses a `.env` file for configuration during development:
 
-@main
-struct MolyseerrApp: App {
-    init() {
-        // Configure the Seerr service
-        SeerrService.shared.setBaseURL("http://localhost:5055")
-        SeerrService.shared.setApiKey("YOUR_API_KEY")
-    }
+1. **Copy the template**:
+   ```bash
+   cp .env.example .env
+   ```
 
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
-}
-```
+2. **Configure your Seerr server** in `.env`:
+   ```bash
+   SEERR_BASE_URL=http://192.168.1.100:5055
+   SEERR_API_KEY=your_api_key_from_seerr
+   ```
+
+3. **Get your API key**:
+   - Log in to your Seerr instance
+   - Go to Settings → API
+   - Copy your API key
+
+The app will automatically load these values on startup via `EnvLoader`.
 
 ### Fetching Trending Content
 
@@ -273,9 +274,18 @@ We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for det
 
 ## 🔐 Security
 
-- Never commit API keys or credentials
+- **Never commit your `.env` file** - it contains sensitive API keys
+- The `.env` file is already in `.gitignore` for your protection
+- Only commit `.env.example` as a template
 - Use `.gitignore` to exclude sensitive files
 - Report security vulnerabilities via GitHub Security Advisories
+
+### Configuration Files (Development)
+
+```bash
+.env              # Your personal config (git-ignored) ❌ DO NOT COMMIT
+.env.example      # Template for others (committed) ✅ Safe to commit
+```
 
 ---
 
