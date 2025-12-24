@@ -1,5 +1,10 @@
 # 📺 Molyseerr
 
+> [!WARNING]
+> **Unofficial Third-Party Client**
+>
+> Molyseerr is an **independent, community-driven project** and is **NOT affiliated with, endorsed by, or maintained by the [Seerr team](https://github.com/seerr-app/seerr)**. This is an unofficial client created by the community to bring Seerr functionality to Apple TV.
+
 <div align="center">
 
 ![tvOS](https://img.shields.io/badge/tvOS-17.0+-black.svg?style=flat&logo=apple)
@@ -21,6 +26,8 @@
 ## 🎯 Overview
 
 **Molyseerr** brings the power of Seerr to your Apple TV. Browse trending movies and TV shows, discover new content, and request media directly from your couch with a native, fluid tvOS experience.
+
+> **Note**: This is an independent third-party application developed by the community, separate from the official Seerr project.
 
 ### What is Seerr?
 
@@ -278,10 +285,18 @@ This project is licensed under the **MIT License** - see [LICENSE](LICENSE) for 
 
 ---
 
+## ⚖️ Disclaimer
+
+Molyseerr is an independent, third-party application and is **not officially associated with, endorsed by, or maintained by the Seerr team**. This is a community-driven project created to enhance the Seerr experience on Apple TV.
+
+For official Seerr support and development, please visit the [official Seerr repository](https://github.com/seerr-app/seerr).
+
+---
+
 ## 🙏 Acknowledgments
 
-- **[Seerr](https://github.com/seerr-app/seerr)**: The amazing backend that powers this app
-- **[Overseerr](https://github.com/sct/overseerr)**: The original project
+- **[Seerr](https://github.com/seerr-app/seerr)**: The amazing backend that powers this app (Note: Molyseerr is not affiliated with the Seerr team)
+- **[Overseerr](https://github.com/sct/overseerr)**: The original project that inspired Seerr
 - **[Kingfisher](https://github.com/onevcat/Kingfisher)**: Excellent image caching library
 - **[The Movie Database (TMDB)](https://www.themoviedb.org/)**: Movie and TV show metadata
 
