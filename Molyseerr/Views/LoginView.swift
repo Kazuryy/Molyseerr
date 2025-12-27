@@ -105,7 +105,7 @@ struct LoginView: View {
                     .buttonStyle(.primary)
                     .frame(maxHeight: 75)
                 } else {
-                    Button("Seerr") {
+                    Button("Sign In") {
                         focusedField = nil
                         Task {
                             await login()
