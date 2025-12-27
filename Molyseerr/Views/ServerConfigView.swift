@@ -98,6 +98,7 @@ struct ServerConfigView: View {
         }
         .frame(maxWidth: 800)
         .frame(maxWidth: .infinity)
+        .preferredColorScheme(.dark)
         .onAppear {
             // Auto-focus server URL field
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
@@ -122,8 +123,14 @@ struct ServerConfigView: View {
         let isValid = await configManager.verifyConfiguration()
 
         if isValid {
-            print("✅ Server verified and configured successfully")
-            // Configuration is already set, LoginView will appear
+            print("✅ Server verified successfully")
+
+            // Pre-load backdrops before showing login page
+            print("🎬 Loading backdrops...")
+            await configManager.loadBackdrops()
+            print("✅ Backdrops loaded, ready for login")
+
+            // Configuration is ready, LoginView will appear
         } else {
             print("❌ Server verification failed")
             errorMessage = "Unable to connect to server. Please check the URL and try again."

@@ -55,29 +55,37 @@ enum EnvLoader {
 
         // Try to find .env file in common locations
         let possiblePaths = [
-            // Development: project root
+            // Development: project root using #file path
             URL(fileURLWithPath: #file)
                 .deletingLastPathComponent() // Services/
                 .deletingLastPathComponent() // Molyseerr/
                 .deletingLastPathComponent() // Project root
                 .appendingPathComponent(".env"),
 
-            // Alternative: Bundle resource
-            Bundle.main.url(forResource: ".env", withExtension: nil)
+            // Alternative: Bundle resource (if added to Xcode target)
+            Bundle.main.url(forResource: ".env", withExtension: nil),
+
+            // Absolute path for development (works in simulator)
+            URL(fileURLWithPath: "REDACTED_USER_PATH<Molyseerr/.env")
         ].compactMap { $0 }
+
+        #if DEBUG
+        print("🔍 Searching for .env file in:")
+        for path in possiblePaths {
+            let exists = FileManager.default.fileExists(atPath: path.path)
+            print("  \(exists ? "✅" : "❌") \(path.path)")
+        }
+        #endif
 
         for envPath in possiblePaths {
             if FileManager.default.fileExists(atPath: envPath.path) {
                 parseEnvFile(at: envPath)
-                break
+                return
             }
         }
 
         #if DEBUG
-        if cachedEnvVars?.isEmpty ?? true {
-            print("⚠️ Warning: .env file not found. Using default values.")
-            print("📝 Copy .env.example to .env and configure your Seerr server.")
-        }
+        print("⚠️ .env file not found")
         #endif
     }
 

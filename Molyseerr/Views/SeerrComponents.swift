@@ -6,14 +6,14 @@
 //
 
 import SwiftUI
+import UIKit
 
-// MARK: - Seerr-style Input Components
+// MARK: - Seerr-style Input Components (Using UITextField for tvOS)
 
-/// Reusable Seerr-style text input field
+/// Reusable Seerr-style text input field with UITextField
 struct SeerrInputField: View {
     let placeholder: String
     @Binding var text: String
-    let isFocused: Bool
     let icon: String
     
     var body: some View {
@@ -24,39 +24,35 @@ struct SeerrInputField: View {
                 .foregroundColor(.white.opacity(0.6))
                 .frame(width: 30)
             
-            // Text field
-            TextField(placeholder, text: $text)
-                .textFieldStyle(.plain)
-                .font(.system(size: 28, weight: .regular))
-                .foregroundColor(.white)
-                .tint(Color(red: 0.5, green: 0.35, blue: 0.9))
+            // UITextField wrapper
+            CustomTextFieldWrapper(
+                text: $text,
+                placeholder: placeholder,
+                isSecure: false
+            )
+            .frame(height: 40)
         }
         .padding(.horizontal, 24)
-        .padding(.vertical, 20)
+        .padding(.vertical, 15)
         .frame(height: 70)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(red: 0.14, green: 0.15, blue: 0.19))  // Seerr input bg #24262F
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .strokeBorder(
-                            isFocused ? 
-                                Color(red: 0.5, green: 0.35, blue: 0.9) :  // Purple when focused
-                                Color.white.opacity(0.1),
-                            lineWidth: isFocused ? 3 : 1
-                        )
-                )
+            ZStack {
+                // Base background
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.Seerr.inputBackground)
+                
+                // Static border
+                RoundedRectangle(cornerRadius: 8)
+                    .strokeBorder(Color.white.opacity(0.15), lineWidth: 2)
+            }
         )
-        .scaleEffect(isFocused ? 1.02 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isFocused)
     }
 }
 
-/// Reusable Seerr-style secure input field
+/// Reusable Seerr-style secure field with UITextField
 struct SeerrSecureField: View {
     let placeholder: String
     @Binding var text: String
-    let isFocused: Bool
     let icon: String
     
     var body: some View {
@@ -67,55 +63,327 @@ struct SeerrSecureField: View {
                 .foregroundColor(.white.opacity(0.6))
                 .frame(width: 30)
             
-            // Secure field
-            SecureField(placeholder, text: $text)
-                .textFieldStyle(.plain)
-                .font(.system(size: 28, weight: .regular))
-                .foregroundColor(.white)
-                .tint(Color(red: 0.5, green: 0.35, blue: 0.9))
+            // UITextField wrapper (secure)
+            CustomTextFieldWrapper(
+                text: $text,
+                placeholder: placeholder,
+                isSecure: true
+            )
+            .frame(height: 40)
         }
         .padding(.horizontal, 24)
-        .padding(.vertical, 20)
+        .padding(.vertical, 15)
         .frame(height: 70)
         .background(
+            ZStack {
+                // Base background
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.Seerr.inputBackground)
+                
+                // Static border
+                RoundedRectangle(cornerRadius: 8)
+                    .strokeBorder(Color.white.opacity(0.15), lineWidth: 2)
+            }
+        )
+    }
+}
+
+// MARK: - UITextField Wrapper for tvOS
+
+struct CustomTextFieldWrapper: UIViewRepresentable {
+    @Binding var text: String
+    let placeholder: String
+    let isSecure: Bool
+    
+    func makeUIView(context: Context) -> UITextField {
+        let textField = UITextField()
+        
+        // Style configuration
+        textField.placeholder = placeholder
+        textField.textColor = UIColor.white
+        textField.font = UIFont.systemFont(ofSize: 28, weight: .regular)
+        textField.backgroundColor = UIColor.clear
+        textField.borderStyle = .none
+        textField.isSecureTextEntry = isSecure
+        
+        // Placeholder styling
+        let attributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor.white.withAlphaComponent(0.4),
+            .font: UIFont.systemFont(ofSize: 28, weight: .regular)
+        ]
+        textField.attributedPlaceholder = NSAttributedString(
+            string: placeholder,
+            attributes: attributes
+        )
+        
+        // Tint color for cursor (Seerr purple)
+        textField.tintColor = UIColor(red: 0.5, green: 0.35, blue: 0.9, alpha: 1.0)
+        
+        // Delegate for text changes
+        textField.delegate = context.coordinator
+        
+        // Add target for text changes
+        textField.addTarget(
+            context.coordinator,
+            action: #selector(Coordinator.textFieldDidChange(_:)),
+            for: .editingChanged
+        )
+        
+        return textField
+    }
+    
+    func updateUIView(_ uiView: UITextField, context: Context) {
+        if uiView.text != text {
+            uiView.text = text
+        }
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(text: $text)
+    }
+    
+    class Coordinator: NSObject, UITextFieldDelegate {
+        @Binding var text: String
+        
+        init(text: Binding<String>) {
+            _text = text
+        }
+        
+        @objc func textFieldDidChange(_ textField: UITextField) {
+            text = textField.text ?? ""
+        }
+    }
+}
+
+// MARK: - Previews
+
+struct SeerrComponents_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            InputFieldNormalPreview()
+            InputFieldWithTextPreview()
+            SecureFieldPreview()
+            LoginFormPreview()
+            ColorPalettePreview()
+        }
+    }
+}
+
+private struct InputFieldNormalPreview: View {
+    @State private var text = ""
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Input Field Normal")
+                .font(.headline)
+                .foregroundColor(.white)
+            
+            SeerrInputField(
+                placeholder: "Server URL",
+                text: $text,
+                icon: "server.rack"
+            )
+            
+            Text("Text: '\(text)'")
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.6))
+        }
+        .padding(40)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            LinearGradient(
+                colors: [Color.Seerr.backgroundDark, Color.Seerr.backgroundDarker],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+    }
+}
+
+private struct InputFieldWithTextPreview: View {
+    @State private var text = "https://seerr.example.com"
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Input Field avec du texte")
+                .font(.headline)
+                .foregroundColor(.white)
+            
+            SeerrInputField(
+                placeholder: "Server URL",
+                text: $text,
+                icon: "server.rack"
+            )
+            
+            Button("Effacer") {
+                text = ""
+            }
+            .foregroundColor(.white)
+        }
+        .padding(40)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            LinearGradient(
+                colors: [Color.Seerr.backgroundDark, Color.Seerr.backgroundDarker],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+    }
+}
+
+private struct SecureFieldPreview: View {
+    @State private var password = ""
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Secure Field")
+                .font(.headline)
+                .foregroundColor(.white)
+            
+            SeerrSecureField(
+                placeholder: "API Key",
+                text: $password,
+                icon: "key.fill"
+            )
+            
+            Text("Password: '\(password)'")
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.6))
+        }
+        .padding(40)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            LinearGradient(
+                colors: [Color.Seerr.backgroundDark, Color.Seerr.backgroundDarker],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+    }
+}
+
+private struct LoginFormPreview: View {
+    @State private var serverUrl = ""
+    @State private var apiKey = ""
+    @State private var email = ""
+    
+    var body: some View {
+        VStack(spacing: 30) {
+            // Logo/Title
+            VStack(spacing: 12) {
+                Image(systemName: "film.stack")
+                    .font(.system(size: 80))
+                    .foregroundColor(Color.Seerr.purple)
+                
+                Text("Molyseerr")
+                    .font(.system(size: 48, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Text("Configuration")
+                    .font(.system(size: 24))
+                    .foregroundColor(.white.opacity(0.7))
+            }
+            .padding(.bottom, 20)
+            
+            // Input fields
+            VStack(spacing: 20) {
+                SeerrInputField(
+                    placeholder: "Server URL",
+                    text: $serverUrl,
+                    icon: "server.rack"
+                )
+                
+                SeerrInputField(
+                    placeholder: "Email",
+                    text: $email,
+                    icon: "envelope.fill"
+                )
+                
+                SeerrSecureField(
+                    placeholder: "API Key",
+                    text: $apiKey,
+                    icon: "key.fill"
+                )
+            }
+            
+            // Button example
+            Button(action: {}) {
+                HStack {
+                    Text("Se connecter")
+                        .font(.system(size: 32, weight: .semibold))
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 28))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 80)
+                .background(Color.Seerr.purple)
+                .cornerRadius(8)
+            }
+            .padding(.top, 20)
+            
+            Spacer()
+        }
+        .padding(60)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            LinearGradient(
+                colors: [Color.Seerr.backgroundDark, Color.Seerr.backgroundDarker],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+    }
+}
+
+private struct ColorPalettePreview: View {
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 30) {
+                Text("Seerr Color Palette")
+                    .font(.system(size: 48, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.top, 40)
+                
+                VStack(spacing: 20) {
+                    ColorSwatch(name: "Purple", color: Color.Seerr.purple)
+                    ColorSwatch(name: "Purple Dark", color: Color.Seerr.purpleDark)
+                    ColorSwatch(name: "Background Dark", color: Color.Seerr.backgroundDark)
+                    ColorSwatch(name: "Background Darker", color: Color.Seerr.backgroundDarker)
+                    ColorSwatch(name: "Card Background", color: Color.Seerr.cardBackground)
+                    ColorSwatch(name: "Input Background", color: Color.Seerr.inputBackground)
+                }
+                .padding(40)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black)
+    }
+}
+
+// Helper view for color palette preview
+private struct ColorSwatch: View {
+    let name: String
+    let color: Color
+    
+    var body: some View {
+        HStack {
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color(red: 0.14, green: 0.15, blue: 0.19))  // Seerr input bg #24262F
+                .fill(color)
+                .frame(width: 120, height: 80)
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
-                        .strokeBorder(
-                            isFocused ? 
-                                Color(red: 0.5, green: 0.35, blue: 0.9) :  // Purple when focused
-                                Color.white.opacity(0.1),
-                            lineWidth: isFocused ? 3 : 1
-                        )
+                        .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
                 )
-        )
-        .scaleEffect(isFocused ? 1.02 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isFocused)
+            
+            Text(name)
+                .font(.system(size: 24))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 }
 
-// MARK: - Seerr Colors Extension
 
-extension Color {
-    /// Seerr brand colors
-    struct Seerr {
-        /// Primary purple color for buttons and accents
-        static let purple = Color(red: 0.5, green: 0.35, blue: 0.9)
-        
-        /// Secondary purple (darker) for unfocused states
-        static let purpleDark = Color(red: 0.43, green: 0.28, blue: 0.8)
-        
-        /// Background gradient dark
-        static let backgroundDark = Color(red: 0.08, green: 0.09, blue: 0.13)  // #141621
-        
-        /// Background gradient darker
-        static let backgroundDarker = Color(red: 0.05, green: 0.06, blue: 0.09)
-        
-        /// Card background
-        static let cardBackground = Color(red: 0.11, green: 0.12, blue: 0.16)  // #1c1e29
-        
-        /// Input field background
-        static let inputBackground = Color(red: 0.14, green: 0.15, blue: 0.19)  // #24262F
-    }
-}
+

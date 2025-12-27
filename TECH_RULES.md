@@ -3,23 +3,31 @@
 ## 1. Stack Technique & Outils
 * **Langage :** Swift 5.9+ (Utilise la syntaxe moderne `if let x` sans répétition).
 * **Framework UI :** SwiftUI (100% déclaratif).
-* **Plateforme Cible :** tvOS 17.0+ (Apple TV 4K).
-* **Gestion des Images :** Utilise la librairie tierce **Kingfisher** via Swift Package Manager (SPM).
+* **Plateforme Cible :** tvOS 26.2+ (Apple TV 4K, 2025).
+* **Gestion des Images :** Utilise la librairie tierce **Kingfisher** (v8.6.2+) via Swift Package Manager (SPM).
     * *Règle :* Ne jamais utiliser `AsyncImage` natif (pas assez de cache). Utilise `KFImage`.
 * **Réseau :** `URLSession` native avec `async/await`.
+* **Configuration Dev :** Fichier `.env` pour baseURL et API key (git-ignored, voir `.env.example`).
 
 ## 2. Règles UX/UI Spécifiques tvOS (CRITIQUE)
+
+> **📖 Référence Design :** Voir [docs/APPLE_TV_DESIGN_REFERENCE.md](docs/APPLE_TV_DESIGN_REFERENCE.md) pour le guide complet du style Apple TV+
+
 * **Focus Engine (Impératif) :**
     * ❌ INTERDIT : N'utilise jamais `onTapGesture`. La télécommande n'est pas une souris.
-    * ✅ OBLIGATOIRE : Utilise des composants `Button` ou `NavigationLink` standards.
+    * ✅ OBLIGATOIRE : Utilise des composants `Button` ou `NavigationLink` standards avec `.focusable()`.
     * L'interface doit être pilotable entièrement avec les flèches (Haut/Bas/Gauche/Droite).
 * **Feedback Visuel :**
     * Tout élément interactif doit avoir un état "Focus" visible.
     * Utilise `.scaleEffect(isFocused ? 1.1 : 1.0)` pour les posters.
-    * Ajoute une bordure ou une ombre quand `isFocused` est vrai.
+    * Ajoute une bordure blanche (4px) ou une ombre quand `isFocused` est vrai.
+    * Animation fluide : `.animation(.easeInOut(duration: 0.2))`.
 * **Navigation :**
-    * Structure : `TabView` racine (Tab bar en haut de l'écran).
-    * Listes : Utilise `ScrollView(.vertical)` contenant des `ScrollView(.horizontal)` pour les rangées de films (Style Netflix).
+    * Structure : Navigation horizontale prioritaire (rows scrollables).
+    * Hero Banner en haut avec backdrop plein écran.
+    * Rows horizontales (`LazyHStack`) pour les catégories.
+    * Safe area tvOS : 90px horizontal padding.
+    * Pas de bouton "Back" - utiliser le bouton MENU du remote.
 
 ## 3. Architecture & Data
 * **Pattern :** MVVM (Model - View - ViewModel).

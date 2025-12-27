@@ -93,6 +93,44 @@ struct TVDetails: Codable, Identifiable {
 
     /// CRITICAL: Contains status, requests, permissions (TVOS_ARCH_SPEC.md Section 2.2)
     let mediaInfo: MediaInfo?
+
+    enum CodingKeys: String, CodingKey {
+        case id, createdBy, episodeRunTime, genres, homepage, inProduction
+        case languages, name, networks, popularity, productionCompanies
+        case seasons, status, tagline, type, credits, mediaInfo
+        case backdropPath = "backdrop_path"
+        case posterPath = "poster_path"
+        case firstAirDate = "first_air_date"
+        case lastAirDate = "last_air_date"
+        case lastEpisodeToAir = "last_episode_to_air"
+        case nextEpisodeToAir = "next_episode_to_air"
+        case numberOfEpisodes = "number_of_episodes"
+        case numberOfSeasons = "number_of_seasons"
+        case originCountry = "origin_country"
+        case originalLanguage = "original_language"
+        case originalName = "original_name"
+        case overview
+        case voteAverage = "vote_average"
+        case voteCount = "vote_count"
+    }
+
+    /// Display name (fallback to original if needed)
+    var displayName: String {
+        name.isEmpty ? (originalName ?? "Unknown") : name
+    }
+
+    /// Formatted runtime (e.g., "45m")
+    var formattedRuntime: String? {
+        guard let episodeRunTime = episodeRunTime, let runtime = episodeRunTime.first, runtime > 0 else { return nil }
+        return "\(runtime)m"
+    }
+
+    /// First air year (e.g., "2020")
+    var firstAirYear: String? {
+        guard let firstAirDate = firstAirDate, !firstAirDate.isEmpty else { return nil }
+        let components = firstAirDate.split(separator: "-")
+        return components.first.map(String.init)
+    }
 }
 
 /// Creator model (for TV shows)

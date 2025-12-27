@@ -20,6 +20,8 @@ enum SeerrError: LocalizedError {
     case notFound
     case serverError
     case unknown
+    case notImplemented
+    case configurationError(String)
 
     var errorDescription: String? {
         switch self {
@@ -43,6 +45,10 @@ enum SeerrError: LocalizedError {
             return "Server error"
         case .unknown:
             return "Unknown error occurred"
+        case .notImplemented:
+            return "Not yet implemented"
+        case .configurationError(let message):
+            return message
         }
     }
 }

@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import Combine
 
 /// ViewModel for managing trending content display
 /// Handles fetching, pagination, and state management for trending movies and TV shows
@@ -107,16 +108,26 @@ class TrendingViewModel: ObservableObject {
                 errorMessage = "Authentication failed. Please check your API key."
             case .notFound:
                 errorMessage = "Content not found."
-            case .serverError(let message):
-                errorMessage = "Server error: \(message)"
-            case .networkError:
-                errorMessage = "Network error. Please check your connection."
-            case .decodingError:
-                errorMessage = "Failed to load content. Please try again."
+            case .serverError:
+                errorMessage = "Server error. Please try again later."
+            case .networkError(let underlyingError):
+                errorMessage = "Network error: \(underlyingError.localizedDescription)"
+            case .decodingError(let underlyingError):
+                errorMessage = "Failed to load content: \(underlyingError.localizedDescription)"
             case .invalidURL:
                 errorMessage = "Invalid server URL."
-            case .missingCredentials:
-                errorMessage = "Missing API credentials. Please configure your Seerr server."
+            case .invalidResponse:
+                errorMessage = "Invalid response from server."
+            case .forbidden:
+                errorMessage = "Access forbidden. Please check your permissions."
+            case .httpError(let statusCode, let message):
+                errorMessage = "HTTP error \(statusCode): \(message ?? "Unknown error")"
+            case .unknown:
+                errorMessage = "An unknown error occurred."
+            case .notImplemented:
+                errorMessage = "This feature is not yet implemented."
+            case .configurationError(let message):
+                errorMessage = message
             }
         } else {
             errorMessage = "An unexpected error occurred: \(error.localizedDescription)"

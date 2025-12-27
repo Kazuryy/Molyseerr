@@ -101,85 +101,33 @@ struct ContentView: View {
         .padding()
     }
 
-    /// List of trending items
+    /// Apple TV+ style horizontal rows
     private var trendingList: some View {
-        ScrollView {
-            LazyVStack(spacing: 20) {
-                ForEach(viewModel.trendingItems, id: \.id) { item in
-                    TrendingItemRow(item: item)
-                }
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: 60) {
+                // Trending row
+                HorizontalMediaRow(
+                    title: "Trending Now",
+                    items: viewModel.trendingItems
+                )
 
                 // Load more indicator
                 if viewModel.hasMorePages {
-                    ProgressView()
-                        .padding()
-                        .task {
-                            await viewModel.loadNextPage()
-                        }
+                    HStack {
+                        Spacer()
+                        ProgressView()
+                            .scaleEffect(1.5)
+                            .task {
+                                await viewModel.loadNextPage()
+                            }
+                        Spacer()
+                    }
+                    .padding(.vertical, 40)
                 }
             }
-            .padding()
+            .padding(.top, 40)
         }
-    }
-}
-
-// MARK: - Trending Item Row
-
-/// Individual row for a trending item
-struct TrendingItemRow: View {
-    let item: MediaResult
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            // Placeholder for poster image (will add Kingfisher in Phase 5)
-            Rectangle()
-                .fill(Color.gray.opacity(0.3))
-                .frame(width: 100, height: 150)
-                .cornerRadius(8)
-                .overlay(
-                    Image(systemName: item.mediaType == .movie ? "film" : "tv")
-                        .font(.largeTitle)
-                        .foregroundColor(.white.opacity(0.5))
-                )
-
-            VStack(alignment: .leading, spacing: 8) {
-                // Title
-                Text(item.title)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .lineLimit(2)
-
-                // Media type badge
-                HStack {
-                    Text(item.mediaType == .movie ? "Movie" : "TV Show")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(item.mediaType == .movie ? Color.blue : Color.purple)
-                        .foregroundColor(.white)
-                        .cornerRadius(4)
-
-                    Spacer()
-                }
-
-                // Overview
-                if let overview = item.overview {
-                    Text(overview)
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                        .lineLimit(3)
-                }
-
-                Spacer()
-            }
-
-            Spacer()
-        }
-        .padding()
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(12)
-        .focusable() // tvOS Focus Engine support
+        .background(Color.black)
     }
 }
 

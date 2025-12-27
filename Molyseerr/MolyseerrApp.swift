@@ -1,43 +1,69 @@
 //
-//  MolyseerrApp.swift
+//      
 //  Molyseerr
 //
 //  Created by Kazuryy on 23/12/2025.
 //
 
 import SwiftUI
+import Combine
 
 @main
 struct MolyseerrApp: App {
 
-    init() {
-        // Configure Seerr service with .env values
-        configureSeerrService()
-    }
-
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
         }
     }
+}
 
-    // MARK: - Configuration
+struct RootView: View {
+    @StateObject private var configManager = ConfigManager()
+    @State private var isValidatingSession = true
 
-    /// Configures the Seerr service with environment variables
-    private func configureSeerrService() {
-        let baseURL = EnvLoader.seerrBaseURL
-        let apiKey = EnvLoader.seerrApiKey
-
-        SeerrService.shared.setBaseURL(baseURL)
-        SeerrService.shared.setApiKey(apiKey)
-
-        #if DEBUG
-        if apiKey.isEmpty {
-            print("⚠️ WARNING: SEERR_API_KEY is not set!")
-            print("📝 Create a .env file from .env.example and add your API key")
-        } else {
-            print("✅ Seerr service configured successfully")
+    var body: some View {
+        Group {
+            if isValidatingSession {
+                // Show loading state while validating session
+                ZStack {
+                    Color.black.ignoresSafeArea()
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .tint(.white)
+                }
+            } else if !configManager.isConfigured {
+                // Step 1: Server configuration
+                ServerConfigView()
+                    .environmentObject(configManager)
+            } else if !configManager.isBackdropsReady {
+                // Step 1.5: Loading backdrops (prevents glitch on LoginView)
+                ZStack {
+                    Color.black.ignoresSafeArea()
+                    VStack(spacing: 20) {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .tint(.white)
+                        Text("Loading...")
+                            .foregroundColor(.white.opacity(0.7))
+                            .font(.caption)
+                    }
+                }
+            } else if !configManager.isAuthenticated {
+                // Step 2: User authentication
+                LoginView()
+                    .environmentObject(configManager)
+            } else {
+                // Step 3: Main app - Discover page
+                DiscoverView()
+                    .environmentObject(configManager)
+            }
         }
-        #endif
+        .preferredColorScheme(.dark)
+        .task {
+            // Validate session on app startup (like Seerr web app does)
+            await configManager.validateSession()
+            isValidatingSession = false
+        }
     }
 }

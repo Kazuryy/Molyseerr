@@ -42,7 +42,7 @@ enum MediaResult: Codable, Identifiable {
     var title: String {
         switch self {
         case .movie(let movie):
-            return movie.title
+            return movie.displayTitle
         case .tv(let tv):
             return tv.name
         }
@@ -72,6 +72,15 @@ enum MediaResult: Codable, Identifiable {
             return movie.mediaInfo
         case .tv(let tv):
             return tv.mediaInfo
+        }
+    }
+
+    var overview: String? {
+        switch self {
+        case .movie(let movie):
+            return movie.overview
+        case .tv(let tv):
+            return tv.overview
         }
     }
 
