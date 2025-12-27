@@ -29,7 +29,7 @@ struct TodayReleasesRow: View {
 
             // Horizontal scroll
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: cardSpacing) {
+                HStack(spacing: cardSpacing) {
                     ForEach(items) { item in
                         TodayReleaseCard(item: item)
                     }

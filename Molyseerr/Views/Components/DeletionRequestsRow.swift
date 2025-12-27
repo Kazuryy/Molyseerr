@@ -68,7 +68,7 @@ struct DeletionRequestsRow: View {
     /// Scrollable row of deletion cards
     private var scrollView: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(spacing: 24) {
+            HStack(spacing: 24) {
                 ForEach(viewModel.votingRequests) { request in
                     DeletionSliderCard(
                         deletionRequest: request,

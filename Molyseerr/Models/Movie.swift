@@ -8,9 +8,11 @@
 import Foundation
 
 /// Genre model
-struct Genre: Codable, Identifiable {
+/// Used for genre sliders - includes backdrop images for visual cards
+struct Genre: Codable, Identifiable, Hashable {
     let id: Int
     let name: String
+    let backdrops: [String]? // Backdrop paths from TMDB for genre card visuals
 }
 
 /// Production company model

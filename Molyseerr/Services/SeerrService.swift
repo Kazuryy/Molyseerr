@@ -661,28 +661,20 @@ final class SeerrService: ObservableObject {
 
     // MARK: - Genre Sliders
 
-    /// Get movie genres
+    /// Get movie genres with backdrop images
     /// Source: seerr-api.yml /discover/genreslider/movie endpoint
-    /// - Returns: Array of movie genres
+    /// Returns genres with backdrop images for visual genre cards
+    /// - Returns: Array of movie genres with backdrops
     func getMovieGenres() async throws -> [Genre] {
-        struct GenreResponse: Codable {
-            let genres: [Genre]
-        }
-
-        let response: GenreResponse = try await performRequest(path: "/discover/genreslider/movie")
-        return response.genres
+        return try await performRequest(path: "/discover/genreslider/movie")
     }
 
-    /// Get TV genres
+    /// Get TV genres with backdrop images
     /// Source: seerr-api.yml /discover/genreslider/tv endpoint
-    /// - Returns: Array of TV genres
+    /// Returns genres with backdrop images for visual genre cards
+    /// - Returns: Array of TV genres with backdrops
     func getTVGenres() async throws -> [Genre] {
-        struct GenreResponse: Codable {
-            let genres: [Genre]
-        }
-
-        let response: GenreResponse = try await performRequest(path: "/discover/genreslider/tv")
-        return response.genres
+        return try await performRequest(path: "/discover/genreslider/tv")
     }
 
     /// Get movies by genre

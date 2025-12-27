@@ -132,6 +132,8 @@ struct DiscoverSliderRow: View {
     @State private var items: [MediaResult] = []
     @State private var calendarItems: [CalendarItem] = []  // For Today's Releases
     @State private var showDeletionRequests = false  // For Deletion Requests slider
+    @State private var showMovieGenres = false  // For Movie Genres slider
+    @State private var showTVGenres = false  // For TV Genres slider
     @State private var isLoading = false
     @State private var error: String?
     @State private var hasLoaded = false
@@ -176,6 +178,14 @@ struct DiscoverSliderRow: View {
                 // Display Deletion Requests with custom row
                 let _ = print("✨ Rendering DELETION REQUESTS slider")
                 DeletionRequestsRow()
+            } else if showMovieGenres {
+                // Display Movie Genres with custom row
+                let _ = print("✨ Rendering MOVIE GENRES slider")
+                MovieGenresRow(title: slider.displayTitle)
+            } else if showTVGenres {
+                // Display TV Genres with custom row
+                let _ = print("✨ Rendering TV GENRES slider")
+                TVGenresRow(title: slider.displayTitle)
             } else if !calendarItems.isEmpty {
                 // Display Today's Releases with custom cards
                 let _ = print("✨ Rendering TODAY'S RELEASES with \(calendarItems.count) items")
@@ -223,6 +233,20 @@ struct DiscoverSliderRow: View {
                 // Set flag to display DeletionRequestsRow (which manages its own data)
                 showDeletionRequests = true
                 print("✅ Showing Deletion Requests slider")
+                isLoading = false
+            }
+            // Special handling for Movie Genres
+            else if slider.type == .movieGenres {
+                // Set flag to display MovieGenresRow (which manages its own data)
+                showMovieGenres = true
+                print("✅ Showing Movie Genres slider")
+                isLoading = false
+            }
+            // Special handling for TV Genres
+            else if slider.type == .tvGenres {
+                // Set flag to display TVGenresRow (which manages its own data)
+                showTVGenres = true
+                print("✅ Showing TV Genres slider")
                 isLoading = false
             }
             // Special handling for Today's Releases
