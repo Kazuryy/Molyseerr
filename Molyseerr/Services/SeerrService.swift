@@ -392,14 +392,13 @@ final class SeerrService: ObservableObject {
 
     /// Get upcoming movies
     /// Source: seerr-api.yml /discover/movies with upcoming filter
+    /// Aligned with webapp behavior: sorts by popularity, no upper date limit
     /// - Parameter page: Page number (default: 1)
     /// - Returns: Paginated response of upcoming movies
     func getUpcomingMovies(page: Int = 1) async throws -> PaginatedResponse<MediaResult> {
         let queryItems = [
             URLQueryItem(name: "page", value: String(page)),
-            URLQueryItem(name: "sortBy", value: "release_date.desc"),
-            URLQueryItem(name: "primaryReleaseDateGte", value: getCurrentDate()),
-            URLQueryItem(name: "primaryReleaseDateLte", value: getDateInFuture(months: 3))
+            URLQueryItem(name: "primaryReleaseDateGte", value: getCurrentDate())
         ]
 
         let response: PaginatedResponse<MovieResult> = try await performRequest(
@@ -408,6 +407,32 @@ final class SeerrService: ObservableObject {
         )
 
         let mediaResults = response.results.map { MediaResult.movie($0) }
+
+        return PaginatedResponse(
+            page: response.page,
+            totalPages: response.totalPages,
+            totalResults: response.totalResults,
+            results: mediaResults
+        )
+    }
+
+    /// Get upcoming TV shows
+    /// Source: seerr-api.yml /discover/tv with upcoming filter
+    /// Aligned with webapp behavior: sorts by popularity, no upper date limit
+    /// - Parameter page: Page number (default: 1)
+    /// - Returns: Paginated response of upcoming TV shows
+    func getUpcomingTV(page: Int = 1) async throws -> PaginatedResponse<MediaResult> {
+        let queryItems = [
+            URLQueryItem(name: "page", value: String(page)),
+            URLQueryItem(name: "firstAirDateGte", value: getCurrentDate())
+        ]
+
+        let response: PaginatedResponse<TVResult> = try await performRequest(
+            path: "/discover/tv",
+            queryItems: queryItems
+        )
+
+        let mediaResults = response.results.map { MediaResult.tv($0) }
 
         return PaginatedResponse(
             page: response.page,

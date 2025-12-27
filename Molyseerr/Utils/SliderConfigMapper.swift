@@ -40,9 +40,7 @@ struct SliderConfigMapper {
 
         case .upcomingMovies:
             return .discover(.movie(
-                sortBy: "release_date.desc",
-                primaryReleaseDateGte: getCurrentDate(),
-                primaryReleaseDateLte: getDateInFuture(months: 3)
+                primaryReleaseDateGte: getCurrentDate()
             ))
 
         case .studios:
@@ -56,9 +54,7 @@ struct SliderConfigMapper {
 
         case .upcomingTV:
             return .discover(.tv(
-                sortBy: "first_air_date.desc",
-                firstAirDateGte: getCurrentDate(),
-                firstAirDateLte: getDateInFuture(months: 3)
+                firstAirDateGte: getCurrentDate()
             ))
 
         case .networks:
