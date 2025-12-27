@@ -34,7 +34,6 @@ struct DiscoverView: View {
                     }
                 }
             }
-            .navigationTitle("Discover")
             .task {
                 // Load slider configuration when view appears
                 await viewModel.fetchSliders()
