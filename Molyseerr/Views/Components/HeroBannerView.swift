@@ -128,7 +128,7 @@ struct HeroBannerView: View {
     private var metadataBadges: some View {
         HStack(spacing: 8) {
             // Media type badge
-            Text(item.mediaType == .movie ? "Film" : "Série TV")
+            Text(item.mediaType == .movie ? "Movie" : "Series")
                 .font(.callout)
                 .fontWeight(.medium)
 

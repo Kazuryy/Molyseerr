@@ -125,7 +125,7 @@ struct DeletionRequestCard: View {
                     .lineLimit(2)
 
                 // Media type
-                Text(deletionRequest.mediaType == "movie" ? "Movie" : "TV Show")
+                Text(deletionRequest.mediaType == "movie" ? "Movie" : "Series")
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.6))
 

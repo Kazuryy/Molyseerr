@@ -72,35 +72,39 @@ struct MediaCardView: View {
                     )
             }
 
-            // Media type icon overlay
+            // Top badges overlay
             VStack {
-                Spacer()
-                HStack {
+                HStack(alignment: .top) {
+                    // Media type badge (top-left)
                     mediaTypeIcon
+
                     Spacer()
+
+                    // Status badge (top-right)
+                    if let mediaInfo = item.mediaInfo,
+                       mediaInfo.status != .unknown {
+                        StatusBadgeMini(status: mediaInfo.status, shrink: true)
+                    }
                 }
                 .padding(12)
+                Spacer()
             }
         }
         .frame(width: cardWidth, height: cardHeight)
     }
 
     private var mediaTypeIcon: some View {
-        HStack(spacing: 6) {
-            Image(systemName: item.mediaType == .movie ? "film.fill" : "tv.fill")
-                .font(.caption)
-
-            Text(item.mediaType == .movie ? "Movie" : "TV")
-                .font(.caption)
-                .fontWeight(.medium)
-        }
-        .foregroundColor(.white)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(
-            Capsule()
-                .fill(item.mediaType == .movie ? Color.blue : Color.purple)
-        )
+        Text(item.mediaType == .movie ? "MOVIE" : "SERIES")
+            .font(.caption)
+            .fontWeight(.medium)
+            .foregroundColor(.white)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                Capsule()
+                    .fill(item.mediaType == .movie ? Color.Seerr.movieBadge : Color.Seerr.seriesBadge)
+                    .opacity(0.8)
+            )
     }
 
     // Uncomment if you want title below poster

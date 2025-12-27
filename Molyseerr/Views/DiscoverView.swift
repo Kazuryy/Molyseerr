@@ -564,8 +564,9 @@ struct DiscoverSliderRow: View {
 
     /// Fetch full details for watchlist items
     /// Watchlist API only returns basic info (title, tmdbId) so we need to fetch full details
-    /// Uses direct TMDB API instead of Seerr for faster and more reliable metadata
+    /// Hybrid approach: TMDB for visual metadata + Seerr for availability status
     private func fetchWatchlistDetails(_ items: [WatchlistItem]) async throws -> [MediaResult] {
+        let seerrService = SeerrService.shared
         let tmdbService = TMDBService.shared
         var results: [MediaResult] = []
 
@@ -575,58 +576,68 @@ struct DiscoverSliderRow: View {
 
             do {
                 if item.mediaType == "movie" {
-                    // Fetch directly from TMDB API
-                    let details = try await tmdbService.getMovieDetails(id: tmdbId)
-                    print("🎬 TMDB Movie details for \(item.title): posterPath=\(details.posterPath ?? "nil")")
+                    // Fetch from both APIs in parallel
+                    async let tmdbDetails = tmdbService.getMovieDetails(id: tmdbId)
+                    async let seerrDetails = try? seerrService.getMovieDetails(id: tmdbId)
+
+                    let (tmdb, seerr) = await (tmdbDetails, seerrDetails)
+
+                    print("🎬 Movie details for \(item.title): tmdbPoster=\(tmdb.posterPath ?? "nil"), status=\(seerr?.mediaInfo?.status.rawValue ?? 0)")
+
                     let movie = MovieResult(
-                        id: details.id,
-                        adult: details.adult,
-                        backdropPath: details.backdropPath,
-                        posterPath: details.posterPath,
-                        genreIds: details.genres?.map { $0.id },
-                        originalLanguage: details.originalLanguage,
-                        originalTitle: details.originalTitle,
-                        overview: details.overview,
-                        popularity: details.popularity,
-                        releaseDate: details.releaseDate,
+                        id: tmdb.id,
+                        adult: tmdb.adult,
+                        backdropPath: tmdb.backdropPath,
+                        posterPath: tmdb.posterPath,  // Use TMDB posterPath
+                        genreIds: tmdb.genres?.map { $0.id },
+                        originalLanguage: tmdb.originalLanguage,
+                        originalTitle: tmdb.originalTitle,
+                        overview: tmdb.overview,
+                        popularity: tmdb.popularity,
+                        releaseDate: tmdb.releaseDate,
                         firstAirDate: nil,
-                        title: details.title,
+                        title: tmdb.title,
                         name: nil,
                         originCountry: nil,
                         originalName: nil,
-                        video: details.video ?? false,
-                        voteAverage: details.voteAverage,
-                        voteCount: details.voteCount,
+                        video: tmdb.video ?? false,
+                        voteAverage: tmdb.voteAverage,
+                        voteCount: tmdb.voteCount,
                         mediaType: "movie",
-                        mediaInfo: nil  // TMDB direct doesn't have Seerr mediaInfo
+                        mediaInfo: seerr?.mediaInfo  // Use Seerr mediaInfo with status
                     )
                     results.append(.movie(movie))
                 } else {
-                    // Fetch directly from TMDB API
-                    let details = try await tmdbService.getTVDetails(id: tmdbId)
-                    print("📺 TMDB TV details for \(item.title): posterPath=\(details.posterPath ?? "nil")")
+                    // Fetch from both APIs in parallel
+                    async let tmdbDetails = tmdbService.getTVDetails(id: tmdbId)
+                    async let seerrDetails = try? seerrService.getTVDetails(id: tmdbId)
+
+                    let (tmdb, seerr) = await (tmdbDetails, seerrDetails)
+
+                    print("📺 TV details for \(item.title): tmdbPoster=\(tmdb.posterPath ?? "nil"), status=\(seerr?.mediaInfo?.status.rawValue ?? 0)")
+
                     let tv = TVResult(
-                        id: details.id,
-                        backdropPath: details.backdropPath,
-                        posterPath: details.posterPath,
-                        genreIds: details.genres?.map { $0.id },
-                        originalLanguage: details.originalLanguage,
-                        originalName: details.originalName,
-                        overview: details.overview,
-                        popularity: details.popularity,
-                        firstAirDate: details.firstAirDate,
-                        name: details.name,
-                        voteAverage: details.voteAverage,
-                        voteCount: details.voteCount,
-                        originCountry: details.originCountry,
+                        id: tmdb.id,
+                        backdropPath: tmdb.backdropPath,
+                        posterPath: tmdb.posterPath,  // Use TMDB posterPath
+                        genreIds: tmdb.genres?.map { $0.id },
+                        originalLanguage: tmdb.originalLanguage,
+                        originalName: tmdb.originalName,
+                        overview: tmdb.overview,
+                        popularity: tmdb.popularity,
+                        firstAirDate: tmdb.firstAirDate,
+                        name: tmdb.name,
+                        voteAverage: tmdb.voteAverage,
+                        voteCount: tmdb.voteCount,
+                        originCountry: tmdb.originCountry,
                         mediaType: "tv",
-                        mediaInfo: nil  // TMDB direct doesn't have Seerr mediaInfo
+                        mediaInfo: seerr?.mediaInfo  // Use Seerr mediaInfo with status
                     )
                     results.append(.tv(tv))
                 }
             } catch {
                 // Skip items that fail to load details
-                print("⚠️ Failed to fetch TMDB details for watchlist item \(tmdbId): \(error)")
+                print("⚠️ Failed to fetch details for watchlist item \(tmdbId): \(error)")
                 continue
             }
         }

@@ -194,7 +194,7 @@ struct TodayReleaseCard: View {
     }
 
     private var typeBadge: some View {
-        Text(item.type == "movie" ? "MOVIE" : "TV SHOW")
+        Text(item.type == "movie" ? "MOVIE" : "SERIES")
             .font(.caption)
             .fontWeight(.bold)
             .foregroundColor(.white)
@@ -202,7 +202,8 @@ struct TodayReleaseCard: View {
             .padding(.vertical, 5)
             .background(
                 Capsule()
-                    .fill(item.type == "movie" ? Color.blue : Color.purple)
+                    .fill(item.type == "movie" ? Color.Seerr.movieBadge : Color.Seerr.seriesBadge)
+                    .opacity(0.8)
             )
     }
 
