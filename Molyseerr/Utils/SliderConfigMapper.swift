@@ -18,9 +18,9 @@ struct SliderConfigMapper {
         // MARK: - Built-in Sliders (No Data Required)
 
         case .recentlyAdded:
-            // TODO: Requires special handling - MediaInfo doesn't contain TMDB metadata
-            // Need to fetch full details for each item
-            return .error("Recently Added slider requires additional implementation")
+            // Recently Added: Shows last 20 items added to the library
+            // Uses /api/v1/media?filter=allavailable&sort=mediaAdded&take=20
+            return .media(filter: "allavailable", sort: "mediaAdded", take: 20)
 
         case .recentRequests:
             // TODO: Requires special handling - need to extract media from requests

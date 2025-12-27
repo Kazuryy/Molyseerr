@@ -270,7 +270,7 @@ struct DiscoverSliderRow: View {
 
         case .media(let filter, let sort, let take):
             let response = try await service.getMediaList(filter: filter, sort: sort, take: take)
-            return try convertMediaInfoToResults(response.results)
+            return try await convertMediaInfoToResults(response.results)
 
         case .request(let filter, let sort, let take):
             let response = try await service.getRequestList(filter: filter, sort: sort, take: take)
@@ -369,53 +369,71 @@ struct DiscoverSliderRow: View {
     }
 
     /// Convert MediaInfo to MediaResult
-    private func convertMediaInfoToResults(_ mediaInfos: [MediaInfo]) throws -> [MediaResult] {
-        return mediaInfos.compactMap { info in
-            if info.mediaType == .movie {
-                let movie = MovieResult(
-                    id: info.tmdbId,
-                    adult: false,
-                    backdropPath: info.backdropPath,
-                    posterPath: info.posterPath,
-                    genreIds: info.genres?.map { $0.id },
-                    originalLanguage: info.originalLanguage,
-                    originalTitle: info.originalTitle,
-                    overview: info.overview,
-                    popularity: info.popularity,
-                    releaseDate: info.releaseDate,
-                    firstAirDate: nil,
-                    title: info.title,
-                    name: nil,
-                    originCountry: nil,
-                    originalName: nil,
-                    video: false,
-                    voteAverage: info.voteAverage,
-                    voteCount: info.voteCount,
-                    mediaType: "movie",
-                    mediaInfo: nil
-                )
-                return MediaResult.movie(movie)
-            } else {
-                let tv = TVResult(
-                    id: info.tmdbId,
-                    backdropPath: info.backdropPath,
-                    posterPath: info.posterPath,
-                    genreIds: info.genres?.map { $0.id },
-                    originalLanguage: info.originalLanguage,
-                    originalName: info.originalTitle,
-                    overview: info.overview,
-                    popularity: info.popularity,
-                    firstAirDate: info.firstAirDate,
-                    name: info.title ?? "",
-                    voteAverage: info.voteAverage,
-                    voteCount: info.voteCount,
-                    originCountry: info.originCountry,
-                    mediaType: "tv",
-                    mediaInfo: nil
-                )
-                return MediaResult.tv(tv)
+    /// Fetches full TMDB details for each item to get poster/backdrop paths
+    /// Note: MediaInfo from /api/v1/media doesn't include TMDB metadata
+    private func convertMediaInfoToResults(_ mediaInfos: [MediaInfo]) async throws -> [MediaResult] {
+        let tmdbService = TMDBService.shared
+        var results: [MediaResult] = []
+
+        // Fetch TMDB details for each media item to get posters
+        for info in mediaInfos {
+            do {
+                if info.mediaType == .movie {
+                    // Fetch movie details from TMDB
+                    let details = try await tmdbService.getMovieDetails(id: info.tmdbId)
+                    let movie = MovieResult(
+                        id: info.tmdbId,
+                        adult: details.adult,
+                        backdropPath: details.backdropPath,
+                        posterPath: details.posterPath,
+                        genreIds: details.genres?.map { $0.id },
+                        originalLanguage: details.originalLanguage,
+                        originalTitle: details.originalTitle,
+                        overview: details.overview,
+                        popularity: details.popularity,
+                        releaseDate: details.releaseDate,
+                        firstAirDate: nil,
+                        title: details.title,
+                        name: nil,
+                        originCountry: nil,
+                        originalName: nil,
+                        video: details.video ?? false,
+                        voteAverage: details.voteAverage,
+                        voteCount: details.voteCount,
+                        mediaType: "movie",
+                        mediaInfo: info  // Include original MediaInfo for status
+                    )
+                    results.append(.movie(movie))
+                } else {
+                    // Fetch TV details from TMDB
+                    let details = try await tmdbService.getTVDetails(id: info.tmdbId)
+                    let tv = TVResult(
+                        id: info.tmdbId,
+                        backdropPath: details.backdropPath,
+                        posterPath: details.posterPath,
+                        genreIds: details.genres?.map { $0.id },
+                        originalLanguage: details.originalLanguage,
+                        originalName: details.originalName,
+                        overview: details.overview,
+                        popularity: details.popularity,
+                        firstAirDate: details.firstAirDate,
+                        name: details.name,
+                        voteAverage: details.voteAverage,
+                        voteCount: details.voteCount,
+                        originCountry: details.originCountry,
+                        mediaType: "tv",
+                        mediaInfo: info  // Include original MediaInfo for status
+                    )
+                    results.append(.tv(tv))
+                }
+            } catch {
+                // Skip items that fail to load TMDB details
+                print("⚠️ Failed to fetch TMDB details for \(info.mediaType) \(info.tmdbId): \(error)")
+                continue
             }
         }
+
+        return results
     }
 
     /// Convert MediaRequest to MediaResult
