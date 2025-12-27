@@ -6,24 +6,24 @@
 //
 
 import Foundation
+import Combine
 
 /// Seerr API Service - Singleton
 /// Uses async/await with URLSession as per TECH_RULES.md Section 1
 /// Source: seerr-api.yml for all endpoints
-@MainActor
 final class SeerrService: ObservableObject {
 
     // MARK: - Singleton
     static let shared = SeerrService()
 
     // MARK: - Configuration
-    /// TEMPORARY: API Key for authentication (MVP approach from TECH_RULES.md)
-    /// TODO: Replace with proper authentication flow
-    private var apiKey: String = "YOUR_API_KEY_HERE"
+    /// API Key for authentication
+    /// Managed by ConfigManager
+    private var apiKey: String = ""
 
     /// Base URL for Seerr API
-    /// Source: seerr-api.yml servers section (default: http://localhost:5055)
-    private var baseURL: String = "http://localhost:5055"
+    /// Managed by ConfigManager
+    private var baseURL: String = ""
 
     /// URL Session for network requests
     private let session: URLSession
@@ -34,6 +34,9 @@ final class SeerrService: ObservableObject {
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 300
         self.session = URLSession(configuration: config)
+
+        // Configuration will be set via ConfigManager.configure() method
+        // which calls setBaseURL() and setApiKey()
     }
 
     // MARK: - Configuration Methods
@@ -120,25 +123,68 @@ final class SeerrService: ObservableObject {
         do {
             let decoder = JSONDecoder()
             decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+            #if DEBUG
+            // Log raw JSON for debugging
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("📥 API Response JSON:")
+                print(jsonString)
+            }
+            #endif
+
             let result = try decoder.decode(T.self, from: data)
             return result
         } catch {
+            #if DEBUG
+            print("❌ Decoding error: \(error)")
+            if let decodingError = error as? DecodingError {
+                switch decodingError {
+                case .keyNotFound(let key, let context):
+                    print("Key '\(key)' not found:", context.debugDescription)
+                    print("codingPath:", context.codingPath)
+                case .valueNotFound(let value, let context):
+                    print("Value '\(value)' not found:", context.debugDescription)
+                    print("codingPath:", context.codingPath)
+                case .typeMismatch(let type, let context):
+                    print("Type '\(type)' mismatch:", context.debugDescription)
+                    print("codingPath:", context.codingPath)
+                case .dataCorrupted(let context):
+                    print("Data corrupted:", context.debugDescription)
+                default:
+                    print("Other decoding error")
+                }
+            }
+            #endif
             throw SeerrError.decodingError(error)
         }
     }
 
     // MARK: - Discovery & Trending
 
+    /// Get backdrop images for animated backgrounds
+    /// Source: Seerr /backdrops endpoint - returns trending backdrop paths
+    /// Used for login/settings page animated backgrounds
+    /// - Returns: Array of TMDB backdrop paths (e.g., "/8ZTVqvKDQ8emSGUEMjsS4yHAwrp.jpg")
+    func getBackdrops() async throws -> [String] {
+        return try await performRequest(path: "/backdrops")
+    }
+
+    /// Get discover slider configuration from server
+    /// Source: seerr-api.yml /settings/discover endpoint
+    /// Returns array of slider configurations ordered by admin settings
+    /// - Returns: Array of discover sliders (only enabled ones should be displayed)
+    func getDiscoverSliders() async throws -> [DiscoverSlider] {
+        return try await performRequest(path: "/settings/discover")
+    }
+
     /// Get trending media (movies and TV shows)
     /// Source: seerr-api.yml /discover/trending endpoint
     /// - Parameters:
     ///   - page: Page number (default: 1)
-    ///   - timeWindow: Time window ("day" or "week", default: "day")
     /// - Returns: Paginated response of mixed media results
-    func getTrending(page: Int = 1, timeWindow: String = "day") async throws -> PaginatedResponse<MediaResult> {
+    func getTrending(page: Int = 1) async throws -> PaginatedResponse<MediaResult> {
         let queryItems = [
-            URLQueryItem(name: "page", value: String(page)),
-            URLQueryItem(name: "timeWindow", value: timeWindow)
+            URLQueryItem(name: "page", value: String(page))
         ]
 
         // First get the raw response to handle mixed movie/TV results
@@ -168,23 +214,65 @@ final class SeerrService: ObservableObject {
 
     /// Discover movies
     /// Source: seerr-api.yml /discover/movies endpoint
+    /// Extended to support all slider types with custom filters
     /// - Parameters:
     ///   - page: Page number (default: 1)
     ///   - sortBy: Sort method (default: "popularity.desc")
     ///   - genre: Genre ID filter (optional)
+    ///   - keywords: Keyword IDs filter (comma-separated, optional)
+    ///   - excludeKeywords: Exclude keyword IDs (comma-separated, optional)
+    ///   - studio: Studio ID filter (optional)
+    ///   - primaryReleaseDateGte: Release date >= (YYYY-MM-DD, optional)
+    ///   - primaryReleaseDateLte: Release date <= (YYYY-MM-DD, optional)
+    ///   - language: Language filter (optional)
+    ///   - watchRegion: Streaming region filter (optional)
+    ///   - watchProviders: Provider IDs filter (pipe-separated, optional)
     /// - Returns: Paginated response of movie results
     func discoverMovies(
         page: Int = 1,
         sortBy: String = "popularity.desc",
-        genre: Int? = nil
+        genre: String? = nil,
+        keywords: String? = nil,
+        excludeKeywords: String? = nil,
+        studio: String? = nil,
+        primaryReleaseDateGte: String? = nil,
+        primaryReleaseDateLte: String? = nil,
+        language: String? = nil,
+        watchRegion: String? = nil,
+        watchProviders: String? = nil
     ) async throws -> PaginatedResponse<MovieResult> {
         var queryItems = [
             URLQueryItem(name: "page", value: String(page)),
             URLQueryItem(name: "sortBy", value: sortBy)
         ]
 
+        // Add optional parameters
         if let genre = genre {
-            queryItems.append(URLQueryItem(name: "genre", value: String(genre)))
+            queryItems.append(URLQueryItem(name: "genre", value: genre))
+        }
+        if let keywords = keywords {
+            queryItems.append(URLQueryItem(name: "keywords", value: keywords))
+        }
+        if let excludeKeywords = excludeKeywords {
+            queryItems.append(URLQueryItem(name: "excludeKeywords", value: excludeKeywords))
+        }
+        if let studio = studio {
+            queryItems.append(URLQueryItem(name: "studio", value: studio))
+        }
+        if let primaryReleaseDateGte = primaryReleaseDateGte {
+            queryItems.append(URLQueryItem(name: "primaryReleaseDateGte", value: primaryReleaseDateGte))
+        }
+        if let primaryReleaseDateLte = primaryReleaseDateLte {
+            queryItems.append(URLQueryItem(name: "primaryReleaseDateLte", value: primaryReleaseDateLte))
+        }
+        if let language = language {
+            queryItems.append(URLQueryItem(name: "language", value: language))
+        }
+        if let watchRegion = watchRegion {
+            queryItems.append(URLQueryItem(name: "watchRegion", value: watchRegion))
+        }
+        if let watchProviders = watchProviders {
+            queryItems.append(URLQueryItem(name: "watchProviders", value: watchProviders))
         }
 
         return try await performRequest(
@@ -195,29 +283,155 @@ final class SeerrService: ObservableObject {
 
     /// Discover TV shows
     /// Source: seerr-api.yml /discover/tv endpoint
+    /// Extended to support all slider types with custom filters
     /// - Parameters:
     ///   - page: Page number (default: 1)
     ///   - sortBy: Sort method (default: "popularity.desc")
     ///   - genre: Genre ID filter (optional)
+    ///   - keywords: Keyword IDs filter (comma-separated, optional)
+    ///   - excludeKeywords: Exclude keyword IDs (comma-separated, optional)
+    ///   - network: Network ID filter (optional)
+    ///   - firstAirDateGte: First air date >= (YYYY-MM-DD, optional)
+    ///   - firstAirDateLte: First air date <= (YYYY-MM-DD, optional)
+    ///   - language: Language filter (optional)
+    ///   - watchRegion: Streaming region filter (optional)
+    ///   - watchProviders: Provider IDs filter (pipe-separated, optional)
     /// - Returns: Paginated response of TV show results
     func discoverTV(
         page: Int = 1,
         sortBy: String = "popularity.desc",
-        genre: Int? = nil
+        genre: String? = nil,
+        keywords: String? = nil,
+        excludeKeywords: String? = nil,
+        network: String? = nil,
+        firstAirDateGte: String? = nil,
+        firstAirDateLte: String? = nil,
+        language: String? = nil,
+        watchRegion: String? = nil,
+        watchProviders: String? = nil
     ) async throws -> PaginatedResponse<TVResult> {
         var queryItems = [
             URLQueryItem(name: "page", value: String(page)),
             URLQueryItem(name: "sortBy", value: sortBy)
         ]
 
+        // Add optional parameters
         if let genre = genre {
-            queryItems.append(URLQueryItem(name: "genre", value: String(genre)))
+            queryItems.append(URLQueryItem(name: "genre", value: genre))
+        }
+        if let keywords = keywords {
+            queryItems.append(URLQueryItem(name: "keywords", value: keywords))
+        }
+        if let excludeKeywords = excludeKeywords {
+            queryItems.append(URLQueryItem(name: "excludeKeywords", value: excludeKeywords))
+        }
+        if let network = network {
+            queryItems.append(URLQueryItem(name: "network", value: network))
+        }
+        if let firstAirDateGte = firstAirDateGte {
+            queryItems.append(URLQueryItem(name: "firstAirDateGte", value: firstAirDateGte))
+        }
+        if let firstAirDateLte = firstAirDateLte {
+            queryItems.append(URLQueryItem(name: "firstAirDateLte", value: firstAirDateLte))
+        }
+        if let language = language {
+            queryItems.append(URLQueryItem(name: "language", value: language))
+        }
+        if let watchRegion = watchRegion {
+            queryItems.append(URLQueryItem(name: "watchRegion", value: watchRegion))
+        }
+        if let watchProviders = watchProviders {
+            queryItems.append(URLQueryItem(name: "watchProviders", value: watchProviders))
         }
 
         return try await performRequest(
             path: "/discover/tv",
             queryItems: queryItems
         )
+    }
+
+    /// Get popular movies
+    /// Source: seerr-api.yml /discover/movies with popularity.desc sort
+    /// - Parameter page: Page number (default: 1)
+    /// - Returns: Paginated response of popular movies
+    func getPopularMovies(page: Int = 1) async throws -> PaginatedResponse<MediaResult> {
+        let response: PaginatedResponse<MovieResult> = try await discoverMovies(
+            page: page,
+            sortBy: "popularity.desc"
+        )
+
+        let mediaResults = response.results.map { MediaResult.movie($0) }
+
+        return PaginatedResponse(
+            page: response.page,
+            totalPages: response.totalPages,
+            totalResults: response.totalResults,
+            results: mediaResults
+        )
+    }
+
+    /// Get popular TV shows
+    /// Source: seerr-api.yml /discover/tv with popularity.desc sort
+    /// - Parameter page: Page number (default: 1)
+    /// - Returns: Paginated response of popular TV shows
+    func getPopularTV(page: Int = 1) async throws -> PaginatedResponse<MediaResult> {
+        let response: PaginatedResponse<TVResult> = try await discoverTV(
+            page: page,
+            sortBy: "popularity.desc"
+        )
+
+        let mediaResults = response.results.map { MediaResult.tv($0) }
+
+        return PaginatedResponse(
+            page: response.page,
+            totalPages: response.totalPages,
+            totalResults: response.totalResults,
+            results: mediaResults
+        )
+    }
+
+    /// Get upcoming movies
+    /// Source: seerr-api.yml /discover/movies with upcoming filter
+    /// - Parameter page: Page number (default: 1)
+    /// - Returns: Paginated response of upcoming movies
+    func getUpcomingMovies(page: Int = 1) async throws -> PaginatedResponse<MediaResult> {
+        let queryItems = [
+            URLQueryItem(name: "page", value: String(page)),
+            URLQueryItem(name: "sortBy", value: "release_date.desc"),
+            URLQueryItem(name: "primaryReleaseDateGte", value: getCurrentDate()),
+            URLQueryItem(name: "primaryReleaseDateLte", value: getDateInFuture(months: 3))
+        ]
+
+        let response: PaginatedResponse<MovieResult> = try await performRequest(
+            path: "/discover/movies",
+            queryItems: queryItems
+        )
+
+        let mediaResults = response.results.map { MediaResult.movie($0) }
+
+        return PaginatedResponse(
+            page: response.page,
+            totalPages: response.totalPages,
+            totalResults: response.totalResults,
+            results: mediaResults
+        )
+    }
+
+    // MARK: - Helper Methods
+
+    /// Get current date in YYYY-MM-DD format
+    private func getCurrentDate() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: Date())
+    }
+
+    /// Get date in future (for upcoming filter)
+    private func getDateInFuture(months: Int) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let futureDate = Calendar.current.date(byAdding: .month, value: months, to: Date()) ?? Date()
+        return formatter.string(from: futureDate)
     }
 
     // MARK: - Media Details
@@ -227,7 +441,9 @@ final class SeerrService: ObservableObject {
     /// - Parameter id: TMDB movie ID
     /// - Returns: Full movie details including mediaInfo
     func getMovieDetails(id: Int) async throws -> MovieDetails {
-        return try await performRequest(path: "/movie/\(id)")
+        let details: MovieDetails = try await performRequest(path: "/movie/\(id)")
+        print("🔍 Decoded MovieDetails - title: \(details.title), posterPath: \(details.posterPath ?? "NIL")")
+        return details
     }
 
     /// Get TV show details
@@ -296,7 +512,7 @@ final class SeerrService: ObservableObject {
             throw SeerrError.invalidURL
         }
 
-        var request = createRequest(url: url, method: "DELETE")
+        let request = createRequest(url: url, method: "DELETE")
 
         let (_, response) = try await session.data(for: request)
 
@@ -338,17 +554,460 @@ final class SeerrService: ObservableObject {
         )
     }
 
+    // MARK: - Media Lists
+
+    /// Get media list (recently added, expiring soon, etc.)
+    /// Source: seerr-api.yml /media endpoint
+    /// - Parameters:
+    ///   - filter: Filter type (allavailable, available, partial, processing, pending)
+    ///   - sort: Sort field (mediaAdded, mediaUpdated, etc.)
+    ///   - take: Number of items to return (default: 20)
+    ///   - skip: Number of items to skip (default: 0)
+    /// - Returns: Media list response
+    func getMediaList(filter: String, sort: String?, take: Int = 20, skip: Int = 0) async throws -> MediaListResponse {
+        var queryItems = [
+            URLQueryItem(name: "filter", value: filter),
+            URLQueryItem(name: "take", value: String(take)),
+            URLQueryItem(name: "skip", value: String(skip))
+        ]
+
+        if let sort = sort {
+            queryItems.append(URLQueryItem(name: "sort", value: sort))
+        }
+
+        return try await performRequest(path: "/media", queryItems: queryItems)
+    }
+
+    /// Get request list (recent requests, deletion requests)
+    /// Source: seerr-api.yml /request endpoint
+    /// - Parameters:
+    ///   - filter: Filter type (all, approved, available, pending, processing, unavailable)
+    ///   - sort: Sort field (added, modified)
+    ///   - take: Number of items to return (default: 20)
+    ///   - skip: Number of items to skip (default: 0)
+    ///   - requestedBy: Filter by user ID (optional)
+    /// - Returns: Request list response
+    func getRequestList(filter: String, sort: String, take: Int = 20, skip: Int = 0, requestedBy: Int? = nil) async throws -> RequestsResponse {
+        var queryItems = [
+            URLQueryItem(name: "filter", value: filter),
+            URLQueryItem(name: "sort", value: sort),
+            URLQueryItem(name: "take", value: String(take)),
+            URLQueryItem(name: "skip", value: String(skip))
+        ]
+
+        if let requestedBy = requestedBy {
+            queryItems.append(URLQueryItem(name: "requestedBy", value: String(requestedBy)))
+        }
+
+        return try await performRequest(path: "/request", queryItems: queryItems)
+    }
+
+    /// Get upcoming calendar items
+    /// Source: seerr-api.yml /calendar/upcoming endpoint
+    /// - Parameters:
+    ///   - startDate: Start date in YYYY-MM-DD format
+    ///   - endDate: End date in YYYY-MM-DD format
+    /// - Returns: Array of calendar items
+    func getUpcomingCalendar(startDate: String, endDate: String, type: String = "all", watchlistOnly: Bool = false) async throws -> [CalendarItem] {
+        let queryItems = [
+            URLQueryItem(name: "start", value: startDate),
+            URLQueryItem(name: "end", value: endDate),
+            URLQueryItem(name: "type", value: type),
+            URLQueryItem(name: "watchlistOnly", value: String(watchlistOnly))
+        ]
+
+        let response: CalendarResponse = try await performRequest(path: "/calendar/upcoming", queryItems: queryItems)
+        // Flatten all items from all days
+        return response.results.flatMap { $0.items }
+    }
+
+    /// Get watchlist from Seerr database
+    /// Source: seerr-api.yml /discover/watchlist endpoint
+    /// - Parameter page: Page number (default: 1)
+    /// - Returns: Array of watchlist items
+    func getWatchlist(page: Int = 1) async throws -> [WatchlistItem] {
+        let queryItems = [
+            URLQueryItem(name: "page", value: String(page))
+        ]
+
+        let response: PaginatedResponse<WatchlistItem> = try await performRequest(path: "/discover/watchlist", queryItems: queryItems)
+        return response.results
+    }
+
+    // MARK: - Genre Sliders
+
+    /// Get movie genres
+    /// Source: seerr-api.yml /discover/genreslider/movie endpoint
+    /// - Returns: Array of movie genres
+    func getMovieGenres() async throws -> [Genre] {
+        struct GenreResponse: Codable {
+            let genres: [Genre]
+        }
+
+        let response: GenreResponse = try await performRequest(path: "/discover/genreslider/movie")
+        return response.genres
+    }
+
+    /// Get TV genres
+    /// Source: seerr-api.yml /discover/genreslider/tv endpoint
+    /// - Returns: Array of TV genres
+    func getTVGenres() async throws -> [Genre] {
+        struct GenreResponse: Codable {
+            let genres: [Genre]
+        }
+
+        let response: GenreResponse = try await performRequest(path: "/discover/genreslider/tv")
+        return response.genres
+    }
+
+    /// Get movies by genre
+    /// Source: seerr-api.yml /discover/genreslider/movie/{genreId} endpoint
+    /// - Parameters:
+    ///   - genreId: Genre ID
+    ///   - page: Page number (default: 1)
+    /// - Returns: Paginated response of movies
+    func getMoviesByGenre(genreId: Int, page: Int = 1) async throws -> PaginatedResponse<MediaResult> {
+        let queryItems = [
+            URLQueryItem(name: "page", value: String(page))
+        ]
+
+        let response: PaginatedResponse<MovieResult> = try await performRequest(
+            path: "/discover/genreslider/movie/\(genreId)",
+            queryItems: queryItems
+        )
+
+        let mediaResults = response.results.map { MediaResult.movie($0) }
+        return PaginatedResponse(
+            page: response.page,
+            totalPages: response.totalPages,
+            totalResults: response.totalResults,
+            results: mediaResults
+        )
+    }
+
+    /// Get TV shows by genre
+    /// Source: seerr-api.yml /discover/genreslider/tv/{genreId} endpoint
+    /// - Parameters:
+    ///   - genreId: Genre ID
+    ///   - page: Page number (default: 1)
+    /// - Returns: Paginated response of TV shows
+    func getTVByGenre(genreId: Int, page: Int = 1) async throws -> PaginatedResponse<MediaResult> {
+        let queryItems = [
+            URLQueryItem(name: "page", value: String(page))
+        ]
+
+        let response: PaginatedResponse<TVResult> = try await performRequest(
+            path: "/discover/genreslider/tv/\(genreId)",
+            queryItems: queryItems
+        )
+
+        let mediaResults = response.results.map { MediaResult.tv($0) }
+        return PaginatedResponse(
+            page: response.page,
+            totalPages: response.totalPages,
+            totalResults: response.totalResults,
+            results: mediaResults
+        )
+    }
+
+    // MARK: - Studio & Network
+
+    /// Get movies by studio
+    /// Source: seerr-api.yml /discover/movies/studio/{studioId} endpoint
+    /// - Parameters:
+    ///   - studioId: Studio ID
+    ///   - page: Page number (default: 1)
+    /// - Returns: Paginated response of movies
+    func getMoviesByStudio(studioId: Int, page: Int = 1) async throws -> PaginatedResponse<MediaResult> {
+        let queryItems = [
+            URLQueryItem(name: "page", value: String(page))
+        ]
+
+        let response: PaginatedResponse<MovieResult> = try await performRequest(
+            path: "/discover/movies/studio/\(studioId)",
+            queryItems: queryItems
+        )
+
+        let mediaResults = response.results.map { MediaResult.movie($0) }
+        return PaginatedResponse(
+            page: response.page,
+            totalPages: response.totalPages,
+            totalResults: response.totalResults,
+            results: mediaResults
+        )
+    }
+
+    /// Get TV shows by network
+    /// Source: seerr-api.yml /discover/tv/network/{networkId} endpoint
+    /// - Parameters:
+    ///   - networkId: Network ID
+    ///   - page: Page number (default: 1)
+    /// - Returns: Paginated response of TV shows
+    func getTVByNetwork(networkId: Int, page: Int = 1) async throws -> PaginatedResponse<MediaResult> {
+        let queryItems = [
+            URLQueryItem(name: "page", value: String(page))
+        ]
+
+        let response: PaginatedResponse<TVResult> = try await performRequest(
+            path: "/discover/tv/network/\(networkId)",
+            queryItems: queryItems
+        )
+
+        let mediaResults = response.results.map { MediaResult.tv($0) }
+        return PaginatedResponse(
+            page: response.page,
+            totalPages: response.totalPages,
+            totalResults: response.totalResults,
+            results: mediaResults
+        )
+    }
+
     // MARK: - User
 
     /// Get current user info
-    /// Source: seerr-api.yml /user/me endpoint
+    /// Source: seerr-api.yml /auth/me endpoint
     /// - Returns: Current authenticated user
     func getCurrentUser() async throws -> User {
-        return try await performRequest(path: "/user/me")
+        return try await performRequest(path: "/auth/me")
+    }
+
+    /// Get Seerr server status (public endpoint, no auth required)
+    /// Source: seerr-api.yml /status endpoint
+    /// - Returns: Server status information
+    func getStatus() async throws -> ServerStatus {
+        return try await performRequest(path: "/status")
+    }
+
+    // MARK: - Deletion Requests
+
+    /// Get deletion requests list (paginated)
+    /// Source: seerr-api.yml /deletion GET endpoint
+    /// - Parameters:
+    ///   - take: Number of items to return (default: 20)
+    ///   - skip: Number of items to skip (default: 0)
+    ///   - status: Filter by status (optional)
+    /// - Returns: Deletion requests response with pagination
+    func getDeletionRequests(
+        take: Int = 20,
+        skip: Int = 0,
+        status: DeletionRequestStatus? = nil
+    ) async throws -> DeletionRequestsResponse {
+        var queryItems = [
+            URLQueryItem(name: "take", value: String(take)),
+            URLQueryItem(name: "skip", value: String(skip))
+        ]
+
+        if let status = status {
+            queryItems.append(URLQueryItem(name: "status", value: status.rawValue))
+        }
+
+        return try await performRequest(
+            path: "/deletion",
+            queryItems: queryItems
+        )
+    }
+
+    /// Get single deletion request by ID
+    /// Source: seerr-api.yml /deletion/:id GET endpoint
+    /// - Parameter id: Deletion request ID
+    /// - Returns: Deletion request details
+    func getDeletionRequest(id: Int) async throws -> DeletionRequest {
+        return try await performRequest(path: "/deletion/\(id)")
+    }
+
+    /// Check if active deletion request exists for media
+    /// Source: seerr-api.yml /deletion/check/:mediaId GET endpoint
+    /// - Parameters:
+    ///   - mediaId: Media ID in Seerr database
+    ///   - mediaType: "movie" or "tv"
+    /// - Returns: Active deletion request if exists
+    func checkDeletionRequest(mediaId: Int, mediaType: String) async throws -> DeletionRequest? {
+        let queryItems = [
+            URLQueryItem(name: "mediaType", value: mediaType)
+        ]
+
+        let response: CheckDeletionResponse = try await performRequest(
+            path: "/deletion/check/\(mediaId)",
+            queryItems: queryItems
+        )
+
+        return response.deletionRequest
+    }
+
+    /// Create a new deletion request
+    /// Source: seerr-api.yml /deletion POST endpoint
+    /// - Parameter body: Deletion request creation details
+    /// - Returns: Created deletion request
+    func createDeletionRequest(_ body: CreateDeletionRequestBody) async throws -> DeletionRequest {
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        let jsonData = try encoder.encode(body)
+
+        return try await performRequest(
+            path: "/deletion",
+            method: "POST",
+            body: jsonData
+        )
+    }
+
+    /// Cast or change vote on deletion request
+    /// Source: seerr-api.yml /deletion/:id/vote POST endpoint
+    /// - Parameters:
+    ///   - deletionRequestId: Deletion request ID
+    ///   - vote: true = vote for deletion (remove), false = vote against (keep)
+    /// - Returns: Updated deletion vote
+    func voteDeletionRequest(deletionRequestId: Int, vote: Bool) async throws -> DeletionVote {
+        let body = DeletionVoteBody(vote: vote)
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        let jsonData = try encoder.encode(body)
+
+        return try await performRequest(
+            path: "/deletion/\(deletionRequestId)/vote",
+            method: "POST",
+            body: jsonData
+        )
+    }
+
+    /// Remove user's vote on deletion request
+    /// Source: seerr-api.yml /deletion/:id/vote DELETE endpoint
+    /// - Parameter deletionRequestId: Deletion request ID
+    func removeVoteDeletionRequest(deletionRequestId: Int) async throws {
+        guard let url = buildURL(path: "/deletion/\(deletionRequestId)/vote") else {
+            throw SeerrError.invalidURL
+        }
+
+        let request = createRequest(url: url, method: "DELETE")
+
+        let (_, response) = try await session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw SeerrError.invalidResponse
+        }
+
+        if httpResponse.statusCode != 204 && httpResponse.statusCode != 200 {
+            throw SeerrError.httpError(statusCode: httpResponse.statusCode, message: nil)
+        }
+    }
+
+    /// Get current user's vote on deletion request
+    /// Source: seerr-api.yml /deletion/:id/vote/me GET endpoint
+    /// - Parameter deletionRequestId: Deletion request ID
+    /// - Returns: User's vote if exists, nil otherwise
+    func getMyDeletionVote(deletionRequestId: Int) async throws -> DeletionVote? {
+        do {
+            return try await performRequest(path: "/deletion/\(deletionRequestId)/vote/me")
+        } catch SeerrError.notFound {
+            // No vote found for this user
+            return nil
+        } catch {
+            throw error
+        }
+    }
+
+    /// Execute approved deletion request (admin only)
+    /// Source: seerr-api.yml /deletion/:id/execute POST endpoint
+    /// - Parameter deletionRequestId: Deletion request ID
+    /// - Returns: Updated deletion request
+    func executeDeletionRequest(deletionRequestId: Int) async throws -> DeletionRequest {
+        return try await performRequest(
+            path: "/deletion/\(deletionRequestId)/execute",
+            method: "POST"
+        )
+    }
+
+    /// Cancel deletion request (requester or admin)
+    /// Source: seerr-api.yml /deletion/:id/cancel POST endpoint
+    /// - Parameter deletionRequestId: Deletion request ID
+    /// - Returns: Updated deletion request
+    func cancelDeletionRequest(deletionRequestId: Int) async throws -> DeletionRequest {
+        return try await performRequest(
+            path: "/deletion/\(deletionRequestId)/cancel",
+            method: "POST"
+        )
+    }
+
+    // MARK: - Authentication
+
+    /// Sign in using local account (email/password)
+    /// Source: seerr-api.yml /auth/local endpoint
+    /// - Parameters:
+    ///   - email: User email
+    ///   - password: User password
+    /// - Returns: Authenticated user object
+    func loginLocal(email: String, password: String) async throws -> User {
+        // Build request body
+        let requestBody = LocalLoginRequest(email: email, password: password)
+        let bodyData = try JSONEncoder().encode(requestBody)
+
+        // Perform login request
+        let user: User = try await performRequest(
+            path: "/auth/local",
+            method: "POST",
+            body: bodyData
+        )
+
+        return user
+    }
+
+    /// Sign in using Jellyfin account (username/password)
+    /// Source: seerr-api.yml /auth/jellyfin endpoint
+    /// - Parameters:
+    ///   - username: Jellyfin username
+    ///   - password: User password
+    /// - Returns: Authenticated user object
+    func loginJellyfin(username: String, password: String) async throws -> User {
+        // Build request body
+        let requestBody = JellyfinLoginRequest(username: username, password: password)
+        let bodyData = try JSONEncoder().encode(requestBody)
+
+        // Perform login request
+        let user: User = try await performRequest(
+            path: "/auth/jellyfin",
+            method: "POST",
+            body: bodyData
+        )
+
+        return user
+    }
+
+    /// Sign out and clear session
+    /// Source: seerr-api.yml /auth/logout endpoint
+    func logout() async throws {
+        struct LogoutResponse: Codable {
+            let status: String
+        }
+
+        let _: LogoutResponse = try await performRequest(
+            path: "/auth/logout",
+            method: "POST"
+        )
     }
 }
 
 // MARK: - Supporting Types
+
+/// Local login request body
+private struct LocalLoginRequest: Codable {
+    let email: String
+    let password: String
+}
+
+/// Jellyfin login request body
+private struct JellyfinLoginRequest: Codable {
+    let username: String
+    let password: String
+}
+
+/// Server status response
+/// Source: seerr-api.yml /status endpoint
+struct ServerStatus: Codable {
+    let version: String
+    let commitTag: String?
+    let updateAvailable: Bool?
+    let commitsBehind: Int?
+    let restartRequired: Bool?
+}
 
 /// Requests response container
 struct RequestsResponse: Codable {
