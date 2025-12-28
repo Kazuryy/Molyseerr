@@ -116,10 +116,6 @@ final class SeerrService: ObservableObject {
             throw SeerrError.serverError
         default:
             let message = String(data: data, encoding: .utf8)
-            #if DEBUG
-            print("❌ HTTP Error \(httpResponse.statusCode)")
-            print("   Response: \(message ?? "no message")")
-            #endif
             throw SeerrError.httpError(statusCode: httpResponse.statusCode, message: message)
         }
 
@@ -127,38 +123,9 @@ final class SeerrService: ObservableObject {
         do {
             let decoder = JSONDecoder()
             decoder.keyDecodingStrategy = .convertFromSnakeCase
-
-            #if DEBUG
-            // Log raw JSON for debugging
-            if let jsonString = String(data: data, encoding: .utf8) {
-                print("📥 API Response JSON:")
-                print(jsonString)
-            }
-            #endif
-
             let result = try decoder.decode(T.self, from: data)
             return result
         } catch {
-            #if DEBUG
-            print("❌ Decoding error: \(error)")
-            if let decodingError = error as? DecodingError {
-                switch decodingError {
-                case .keyNotFound(let key, let context):
-                    print("Key '\(key)' not found:", context.debugDescription)
-                    print("codingPath:", context.codingPath)
-                case .valueNotFound(let value, let context):
-                    print("Value '\(value)' not found:", context.debugDescription)
-                    print("codingPath:", context.codingPath)
-                case .typeMismatch(let type, let context):
-                    print("Type '\(type)' mismatch:", context.debugDescription)
-                    print("codingPath:", context.codingPath)
-                case .dataCorrupted(let context):
-                    print("Data corrupted:", context.debugDescription)
-                default:
-                    print("Other decoding error")
-                }
-            }
-            #endif
             throw SeerrError.decodingError(error)
         }
     }
@@ -470,9 +437,7 @@ final class SeerrService: ObservableObject {
     /// - Parameter id: TMDB movie ID
     /// - Returns: Full movie details including mediaInfo
     func getMovieDetails(id: Int) async throws -> MovieDetails {
-        let details: MovieDetails = try await performRequest(path: "/movie/\(id)")
-        print("🔍 Decoded MovieDetails - title: \(details.title), posterPath: \(details.posterPath ?? "NIL")")
-        return details
+        return try await performRequest(path: "/movie/\(id)")
     }
 
     /// Get TV show details
@@ -494,12 +459,6 @@ final class SeerrService: ObservableObject {
         // NOTE: Request body uses camelCase, not snake_case
         // encoder.keyEncodingStrategy = .convertToSnakeCase  // DO NOT USE
         let jsonData = try encoder.encode(requestBody)
-
-        #if DEBUG
-        if let jsonString = String(data: jsonData, encoding: .utf8) {
-            print("📤 Request JSON: \(jsonString)")
-        }
-        #endif
 
         return try await performRequest(
             path: "/request",

@@ -68,7 +68,6 @@ final class CreateRequestViewModel: ObservableObject {
     // MARK: - Submit Request
     func submitRequest() async -> Bool {
         guard canSubmit else {
-            print("❌ Cannot submit: canSubmit = false")
             return false
         }
 
@@ -86,18 +85,10 @@ final class CreateRequestViewModel: ObservableObject {
                 rootFolder: nil
             )
 
-            print("📤 Submitting request:")
-            print("  - mediaType: \(mediaType)")
-            print("  - mediaId: \(mediaId)")
-            print("  - seasons: \(String(describing: requestBody.seasons))")
-            print("  - is4k: \(String(describing: requestBody.is4k))")
-
             _ = try await SeerrService.shared.createRequest(requestBody)
-            print("✅ Request created successfully")
             isSubmitting = false
             return true
         } catch {
-            print("❌ Request failed: \(error)")
             errorMessage = "Failed to create request: \(error.localizedDescription)"
             isSubmitting = false
             return false

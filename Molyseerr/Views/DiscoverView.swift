@@ -170,7 +170,6 @@ struct DiscoverSliderRow: View {
         Group {
             if isLoading {
                 // Loading state for this slider
-                let _ = print("🔄 Rendering LOADING state for: \(slider.displayTitle)")
                 VStack(alignment: .leading, spacing: 20) {
                     Text(slider.displayTitle)
                         .font(.title2)
@@ -189,7 +188,6 @@ struct DiscoverSliderRow: View {
                 }
             } else if let error = error {
                 // Error state for this slider
-                let _ = print("❌ Rendering ERROR state for: \(slider.displayTitle) - \(error)")
                 VStack(alignment: .leading, spacing: 12) {
                     Text(slider.displayTitle)
                         .font(.title2)
@@ -204,27 +202,21 @@ struct DiscoverSliderRow: View {
                 }
             } else if showDeletionRequests {
                 // Display Deletion Requests with custom row
-                let _ = print("✨ Rendering DELETION REQUESTS slider")
                 DeletionRequestsRow()
             } else if showMovieGenres {
                 // Display Movie Genres with custom row
-                let _ = print("✨ Rendering MOVIE GENRES slider")
                 MovieGenresRow(title: slider.displayTitle)
             } else if showTVGenres {
                 // Display TV Genres with custom row
-                let _ = print("✨ Rendering TV GENRES slider")
                 TVGenresRow(title: slider.displayTitle)
             } else if !calendarItems.isEmpty {
                 // Display Today's Releases with custom cards
-                let _ = print("✨ Rendering TODAY'S RELEASES with \(calendarItems.count) items")
                 TodayReleasesRow(title: slider.displayTitle, items: calendarItems)
             } else if !items.isEmpty {
                 // Display standard slider with content
-                let _ = print("✨ Rendering CONTENT state for: \(slider.displayTitle) with \(items.count) items")
                 HorizontalMediaRow(title: slider.displayTitle, items: items)
             } else {
                 // DEBUG: Show empty sliders for debugging
-                let _ = print("⚠️ Rendering EMPTY state for: \(slider.displayTitle)")
                 VStack(alignment: .leading, spacing: 12) {
                     Text(slider.displayTitle)
                         .font(.title2)
@@ -251,7 +243,6 @@ struct DiscoverSliderRow: View {
         guard !isLoading, !hasLoaded else { return }
 
         hasLoaded = true
-        print("🎬 Loading slider: \(slider.displayTitle) (type: \(slider.type.rawValue))")
         isLoading = true
         error = nil
 
@@ -260,21 +251,18 @@ struct DiscoverSliderRow: View {
             if slider.type == .deletionRequests {
                 // Set flag to display DeletionRequestsRow (which manages its own data)
                 showDeletionRequests = true
-                print("✅ Showing Deletion Requests slider")
                 isLoading = false
             }
             // Special handling for Movie Genres
             else if slider.type == .movieGenres {
                 // Set flag to display MovieGenresRow (which manages its own data)
                 showMovieGenres = true
-                print("✅ Showing Movie Genres slider")
                 isLoading = false
             }
             // Special handling for TV Genres
             else if slider.type == .tvGenres {
                 // Set flag to display TVGenresRow (which manages its own data)
                 showTVGenres = true
-                print("✅ Showing TV Genres slider")
                 isLoading = false
             }
             // Special handling for Today's Releases
@@ -287,17 +275,13 @@ struct DiscoverSliderRow: View {
                     type: "all",
                     watchlistOnly: false
                 )
-                print("✅ Loaded \(calendarItems.count) calendar items for Today's Releases")
                 isLoading = false
             } else {
                 // Standard slider content
                 items = try await fetchContentForSlider(slider)
-                print("✅ Loaded \(items.count) items for: \(slider.displayTitle)")
-                print("📊 Items state - isEmpty: \(items.isEmpty), isLoading: false, error: nil")
                 isLoading = false
             }
         } catch {
-            print("❌ Failed to load \(slider.displayTitle): \(error)")
             self.error = "Failed to load content"
             isLoading = false
         }

@@ -11,11 +11,15 @@ import Kingfisher
 /// Horizontal request card for RequestsView
 struct RequestCardView: View {
     let request: MediaRequest
+    let title: String
+    let posterPath: String?
     let onCancel: (() -> Void)?
     let isFocused: Bool
 
-    init(request: MediaRequest, isFocused: Bool = false, onCancel: (() -> Void)? = nil) {
+    init(request: MediaRequest, title: String, posterPath: String? = nil, isFocused: Bool = false, onCancel: (() -> Void)? = nil) {
         self.request = request
+        self.title = title
+        self.posterPath = posterPath
         self.isFocused = isFocused
         self.onCancel = onCancel
     }
@@ -23,7 +27,7 @@ struct RequestCardView: View {
     var body: some View {
         HStack(spacing: 20) {
             // Poster
-            if let posterPath = request.media?.posterPath {
+            if let posterPath = posterPath {
                 let posterURL = URL(string: "https://image.tmdb.org/t/p/w300\(posterPath)")
                 KFImage(posterURL)
                     .placeholder {
@@ -49,7 +53,7 @@ struct RequestCardView: View {
             // Info
             VStack(alignment: .leading, spacing: 12) {
                 // Title
-                Text(mediaTitle)
+                Text(title)
                     .font(.title2)
                     .fontWeight(.bold)
                     .lineLimit(2)
@@ -116,11 +120,6 @@ struct RequestCardView: View {
     }
 
     // MARK: - Computed Properties
-    private var mediaTitle: String {
-        guard let media = request.media else { return "Unknown" }
-        return media.tmdbId > 0 ? (media.title ?? "Unknown") : "Unknown"
-    }
-
     private var mediaType: MediaType {
         request.media?.mediaType ?? .movie
     }

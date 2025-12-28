@@ -90,7 +90,6 @@ struct TodayReleaseCard: View {
                 }()
 
                 if let imageURL = imageURL {
-                    let _ = print("🖼️ Loading backdrop for \(item.title): \(imageURL.absoluteString)")
                     KFImage(imageURL)
                         .placeholder {
                             Rectangle()
@@ -100,9 +99,6 @@ struct TodayReleaseCard: View {
                         .aspectRatio(contentMode: .fill)
                         .frame(width: cardWidth, height: cardHeight)
                         .clipped()
-                        .onAppear {
-                            print("✅ Backdrop loaded for \(item.title)")
-                        }
                 } else {
                     // Invalid URL
                     placeholderImage
@@ -118,7 +114,6 @@ struct TodayReleaseCard: View {
                 }()
 
                 if let imageURL = imageURL {
-                    let _ = print("⚠️ No backdrop for \(item.title), using poster: \(imageURL.absoluteString)")
                     KFImage(imageURL)
                         .placeholder {
                             Rectangle()
@@ -132,7 +127,6 @@ struct TodayReleaseCard: View {
                     placeholderImage
                 }
             } else {
-                let _ = print("❌ No images for \(item.title): backdropPath=\(item.backdropPath ?? "nil"), posterPath=\(item.posterPath ?? "nil")")
                 placeholderImage
             }
 

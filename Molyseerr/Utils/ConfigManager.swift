@@ -76,8 +76,6 @@ final class ConfigManager: ObservableObject {
 
         // Save to persistence
         saveToUserDefaults()
-
-        print("✅ Server configured: \(self.baseURL)")
     }
 
     /// Validate current session by calling /user/me
@@ -85,7 +83,6 @@ final class ConfigManager: ObservableObject {
     /// URLSession automatically includes session cookies in the request
     func validateSession() async {
         guard isConfigured else {
-            print("⚠️ Server not configured, skipping session validation")
             self.isAuthenticated = false
             self.currentUser = nil
             return
@@ -98,14 +95,10 @@ final class ConfigManager: ObservableObject {
             // Session is valid - update state
             self.currentUser = user
             self.isAuthenticated = true
-
-            print("✅ Session validated - User: \(user.displayName)")
         } catch {
             // Session is invalid or expired
             self.currentUser = nil
             self.isAuthenticated = false
-
-            print("⚠️ Session validation failed: \(error)")
         }
     }
 
@@ -114,9 +107,8 @@ final class ConfigManager: ObservableObject {
         do {
             // Call server logout endpoint to destroy session
             try await SeerrService.shared.logout()
-            print("✅ Logged out successfully")
         } catch {
-            print("⚠️ Logout request failed: \(error)")
+            // Ignore logout errors
         }
 
         // Clear local state regardless of server response
@@ -131,11 +123,9 @@ final class ConfigManager: ObservableObject {
 
         do {
             // Try to get server status (public endpoint, no auth required)
-            let status = try await SeerrService.shared.getStatus()
-            print("✅ Server verified - Seerr version: \(status.version)")
+            _ = try await SeerrService.shared.getStatus()
             return true
         } catch {
-            print("❌ Configuration verification failed: \(error)")
             return false
         }
     }
@@ -144,7 +134,6 @@ final class ConfigManager: ObservableObject {
     /// Called after server verification to pre-load images
     func loadBackdrops() async {
         guard isConfigured else {
-            print("⚠️ Server not configured, skipping backdrop loading")
             self.isBackdropsReady = false
             return
         }
@@ -155,12 +144,9 @@ final class ConfigManager: ObservableObject {
         do {
             let fetchedBackdrops = try await SeerrService.shared.getBackdrops()
             self.backdrops = fetchedBackdrops
-            print("✅ Loaded \(fetchedBackdrops.count) backdrops")
-
             // Mark as ready after successful load
             self.isBackdropsReady = true
         } catch {
-            print("❌ Failed to load backdrops: \(error)")
             self.backdrops = []
             // Even on error, mark as ready to avoid blocking the UI
             self.isBackdropsReady = true
@@ -182,6 +168,5 @@ final class ConfigManager: ObservableObject {
         self.currentUser = nil
         self.backdrops = []
         saveToUserDefaults()
-        print("🔄 Configuration reset")
     }
 }

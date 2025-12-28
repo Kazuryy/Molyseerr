@@ -23,6 +23,11 @@ final class RequestsViewModel: ObservableObject {
     private let pageSize: Int = 20
     private var totalPages: Int = 1
 
+    // Cache for media details (tmdbId -> title)
+    private var mediaTitles: [Int: String] = [:]
+    // Cache for media posters (tmdbId -> posterPath)
+    private var mediaPosters: [Int: String] = [:]
+
     // MARK: - Fetch Requests
     func fetchRequests(refresh: Bool = false) async {
         if refresh {
@@ -42,7 +47,10 @@ final class RequestsViewModel: ObservableObject {
                 skip: (currentPage - 1) * pageSize
             )
 
-            // Update requests list
+            // Fetch titles for media that we don't have cached BEFORE updating the requests list
+            await fetchMissingTitles(for: response.results)
+
+            // Update requests list AFTER titles are fetched
             if refresh {
                 requests = response.results
             } else {
@@ -89,6 +97,72 @@ final class RequestsViewModel: ObservableObject {
         } catch {
             errorMessage = "Failed to cancel request: \(error.localizedDescription)"
             return false
+        }
+    }
+
+    // MARK: - Get Media Title
+    func getMediaTitle(for request: MediaRequest) -> String {
+        guard let media = request.media else { return "Unknown" }
+
+        // Return cached title if available
+        if let cachedTitle = mediaTitles[media.tmdbId] {
+            return cachedTitle
+        }
+
+        // Fallback to original title or unknown
+        return media.originalTitle ?? "Unknown"
+    }
+
+    // MARK: - Get Media Poster
+    func getMediaPoster(for request: MediaRequest) -> String? {
+        guard let media = request.media else { return nil }
+
+        // Return cached poster if available, or use MediaInfo's posterPath directly
+        return mediaPosters[media.tmdbId] ?? media.posterPath
+    }
+
+    // MARK: - Private Helpers
+    private func fetchMissingTitles(for requests: [MediaRequest]) async {
+        // Collect unique media items that need titles fetched
+        let mediaToFetch = requests.compactMap { $0.media }
+            .filter { mediaTitles[$0.tmdbId] == nil && $0.tmdbId > 0 }
+
+        guard !mediaToFetch.isEmpty else {
+            return
+        }
+
+        // Fetch titles and posters in parallel
+        await withTaskGroup(of: (Int, String?, String?).self) { group in
+            for media in mediaToFetch {
+                group.addTask {
+                    await self.fetchMediaDetails(tmdbId: media.tmdbId, mediaType: media.mediaType)
+                }
+            }
+
+            // Collect results
+            for await (tmdbId, title, posterPath) in group {
+                if let title = title {
+                    self.mediaTitles[tmdbId] = title
+                }
+                if let posterPath = posterPath {
+                    self.mediaPosters[tmdbId] = posterPath
+                }
+            }
+        }
+    }
+
+    private func fetchMediaDetails(tmdbId: Int, mediaType: MediaType) async -> (Int, String?, String?) {
+        do {
+            // Use TMDB API directly since Seerr API doesn't return posterPath
+            if mediaType == .movie {
+                let details = try await TMDBService.shared.getMovieDetails(id: tmdbId)
+                return (tmdbId, details.title, details.posterPath)
+            } else {
+                let details = try await TMDBService.shared.getTVDetails(id: tmdbId)
+                return (tmdbId, details.name, details.posterPath)
+            }
+        } catch {
+            return (tmdbId, nil, nil)
         }
     }
 }

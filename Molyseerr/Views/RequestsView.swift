@@ -35,10 +35,14 @@ struct RequestsView: View {
             // Content
             ZStack {
                 if viewModel.isLoading && viewModel.requests.isEmpty {
-                    // Loading state
-                    ProgressView("Loading requests...")
-                        .progressViewStyle(.circular)
-                        .tint(.white)
+                    // Loading state - aligned to top
+                    VStack {
+                        ProgressView("Loading requests...")
+                            .progressViewStyle(.circular)
+                            .tint(.white)
+                            .padding(.top, 40)
+                        Spacer()
+                    }
                 } else if viewModel.requests.isEmpty {
                     // Empty state
                     emptyState
@@ -122,6 +126,8 @@ struct RequestsView: View {
     private func requestCard(for request: MediaRequest) -> some View {
         RequestCardView(
             request: request,
+            title: viewModel.getMediaTitle(for: request),
+            posterPath: viewModel.getMediaPoster(for: request),
             isFocused: focusedRequest == request.id,
             onCancel: cancelClosure(for: request)
         )

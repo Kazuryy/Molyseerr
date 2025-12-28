@@ -58,7 +58,6 @@ final class MediaDetailViewModel: ObservableObject {
             }
         } catch {
             errorMessage = error.localizedDescription
-            print("❌ Failed to load details: \(error)")
         }
 
         isLoading = false
