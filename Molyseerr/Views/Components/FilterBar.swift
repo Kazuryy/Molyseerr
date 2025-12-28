@@ -8,13 +8,15 @@
 import SwiftUI
 
 /// Request filter options
+/// Maps to Seerr API filter parameter (see server/routes/request.ts:45-75)
 enum RequestFilter: String, CaseIterable, Identifiable {
     case all = "all"
     case pending = "pending"
-    case approved = "approved"
-    case available = "available"
-    case processing = "processing"
+    case processing = "processing"  // Maps to APPROVED status
+    case available = "available"    // APPROVED + media AVAILABLE
+    case unavailable = "unavailable" // PENDING or APPROVED + media not AVAILABLE
     case failed = "failed"
+    case completed = "completed"
 
     var id: String { rawValue }
 
@@ -22,10 +24,11 @@ enum RequestFilter: String, CaseIterable, Identifiable {
         switch self {
         case .all: return "All"
         case .pending: return "Pending"
-        case .approved: return "Approved"
-        case .available: return "Available"
         case .processing: return "Processing"
+        case .available: return "Available"
+        case .unavailable: return "Unavailable"
         case .failed: return "Failed"
+        case .completed: return "Completed"
         }
     }
 }
@@ -34,6 +37,7 @@ enum RequestFilter: String, CaseIterable, Identifiable {
 struct FilterBar: View {
     @Binding var selectedFilter: RequestFilter
     @FocusState.Binding var focusedFilter: RequestFilter?
+    var onFilterSelected: ((RequestFilter) -> Void)?
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -44,7 +48,7 @@ struct FilterBar: View {
                         isSelected: selectedFilter == filter,
                         isFocused: focusedFilter == filter
                     ) {
-                        selectedFilter = filter
+                        onFilterSelected?(filter)
                     }
                     .focused($focusedFilter, equals: filter)
                 }
@@ -78,7 +82,7 @@ struct FilterButton: View {
                 .scaleEffect(isFocused ? 1.1 : 1.0)
                 .shadow(radius: isFocused ? 12 : 4)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.card)
         .animation(.easeInOut(duration: 0.15), value: isFocused)
     }
 
