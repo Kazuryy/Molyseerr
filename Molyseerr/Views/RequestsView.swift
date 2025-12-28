@@ -17,59 +17,47 @@ struct RequestsView: View {
 
     // MARK: - Body
     var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            header
+        contentView
+            .background(Color.black)
+            .navigationBarHidden(true)
+            .toast($toast)
+    }
 
-            // Filter Bar
-            FilterBar(
-                selectedFilter: $viewModel.selectedFilter,
-                focusedFilter: $focusedFilter
-            )
-            .onChange(of: viewModel.selectedFilter) { _, newFilter in
-                Task {
-                    await viewModel.applyFilter(newFilter)
+    // MARK: - Content View
+    private var contentView: some View {
+        ZStack {
+            if viewModel.isLoading && viewModel.requests.isEmpty {
+                // Loading state - aligned to top
+                VStack {
+                    ProgressView("Loading requests...")
+                        .progressViewStyle(.circular)
+                        .tint(.white)
+                        .padding(.top, 40)
+                    Spacer()
                 }
+            } else if viewModel.requests.isEmpty {
+                // Empty state
+                emptyState
+            } else {
+                // Requests list
+                requestsList
             }
 
-            // Content
-            ZStack {
-                if viewModel.isLoading && viewModel.requests.isEmpty {
-                    // Loading state - aligned to top
-                    VStack {
-                        ProgressView("Loading requests...")
-                            .progressViewStyle(.circular)
-                            .tint(.white)
-                            .padding(.top, 40)
-                        Spacer()
-                    }
-                } else if viewModel.requests.isEmpty {
-                    // Empty state
-                    emptyState
-                } else {
-                    // Requests list
-                    requestsList
-                }
-
-                // Error overlay
-                if let errorMessage = viewModel.errorMessage {
-                    VStack {
-                        Spacer()
-                        Text(errorMessage)
-                            .foregroundColor(.red)
-                            .padding()
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.black.opacity(0.8))
-                            )
-                            .padding()
-                    }
+            // Error overlay
+            if let errorMessage = viewModel.errorMessage {
+                VStack {
+                    Spacer()
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.black.opacity(0.8))
+                        )
+                        .padding()
                 }
             }
         }
-        .background(Color.black)
-        .navigationTitle("Requests")
-        .toast($toast)
         .task {
             await viewModel.fetchRequests(refresh: true)
         }
@@ -94,15 +82,32 @@ struct RequestsView: View {
     // MARK: - Requests List
     private var requestsList: some View {
         ScrollView {
-            LazyVStack(spacing: 16) {
-                ForEach(viewModel.requests, id: \.id) { request in
-                    requestRow(for: request)
+            VStack(spacing: 0) {
+                // Header
+                header
+
+                // Filter Bar
+                FilterBar(
+                    selectedFilter: $viewModel.selectedFilter,
+                    focusedFilter: $focusedFilter,
+                    onFilterSelected: { filter in
+                        Task {
+                            await viewModel.applyFilter(filter)
+                        }
+                    }
+                )
+
+                // Requests
+                LazyVStack(spacing: 16) {
+                    ForEach(viewModel.requests, id: \.id) { request in
+                        requestRow(for: request)
+                    }
                 }
+                .padding(.horizontal, 48)
+                .padding(.top, 24)
+                .padding(.bottom, 24)
             }
-            .padding(.horizontal, 48)
-            .padding(.vertical, 24)
         }
-        .scrollClipDisabled()
     }
 
     @ViewBuilder
@@ -154,18 +159,23 @@ struct RequestsView: View {
 
     // MARK: - Empty State
     private var emptyState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "tray")
-                .font(.system(size: 80))
-                .foregroundColor(.gray)
+        VStack {
+            VStack(spacing: 16) {
+                Image(systemName: "tray")
+                    .font(.system(size: 80))
+                    .foregroundColor(.gray)
 
-            Text("No \(viewModel.selectedFilter.displayName.lowercased()) requests")
-                .font(.title2)
-                .foregroundColor(.gray)
+                Text("No \(viewModel.selectedFilter.displayName.lowercased()) requests")
+                    .font(.title2)
+                    .foregroundColor(.gray)
 
-            Text("Requests you make will appear here")
-                .font(.subheadline)
-                .foregroundColor(.gray.opacity(0.7))
+                Text("Requests you make will appear here")
+                    .font(.subheadline)
+                    .foregroundColor(.gray.opacity(0.7))
+            }
+            .padding(.top, 40)
+
+            Spacer()
         }
     }
 
