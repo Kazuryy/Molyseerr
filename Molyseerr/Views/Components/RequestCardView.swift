@@ -25,8 +25,23 @@ struct RequestCardView: View {
     }
 
     var body: some View {
-        HStack(spacing: 20) {
-            // Poster
+        cardContent
+            .padding(28)
+            .background(cardBackground)
+            .overlay(cardBorder)
+            .animation(.easeInOut(duration: 0.2), value: isFocused)
+    }
+
+    private var cardContent: some View {
+        HStack(spacing: 24) {
+            posterView
+            infoSection
+            Spacer()
+        }
+    }
+
+    private var posterView: some View {
+        Group {
             if let posterPath = posterPath {
                 let posterURL = URL(string: "https://image.tmdb.org/t/p/w300\(posterPath)")
                 KFImage(posterURL)
@@ -36,87 +51,152 @@ struct RequestCardView: View {
                     }
                     .resizable()
                     .aspectRatio(2/3, contentMode: .fit)
-                    .frame(width: 150)
-                    .cornerRadius(8)
+                    .frame(width: 180)
+                    .cornerRadius(12)
             } else {
                 Rectangle()
                     .fill(Color.gray.opacity(0.3))
-                    .frame(width: 150, height: 225)
-                    .cornerRadius(8)
+                    .frame(width: 180, height: 270)
+                    .cornerRadius(12)
                     .overlay(
-                        Image(systemName: "photo")
-                            .font(.largeTitle)
+                        Image(systemName: "film")
+                            .font(.system(size: 60))
                             .foregroundColor(.gray)
                     )
             }
-
-            // Info
-            VStack(alignment: .leading, spacing: 12) {
-                // Title
-                Text(title)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .lineLimit(2)
-
-                // Metadata
-                HStack(spacing: 8) {
-                    // Media Type Badge
-                    MediaTypeBadgeView(mediaType: mediaType)
-
-                    // Status Badge
-                    StatusBadge(status: request.status)
-                }
-
-                // Requested by
-                if let requestedBy = request.requestedBy {
-                    HStack(spacing: 8) {
-                        Image(systemName: "person.circle.fill")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-
-                        Text("Requested by \(requestedBy.displayName)")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                }
-
-                // Request date
-                Text("Requested \(relativeTime)")
-                    .font(.caption)
-                    .foregroundColor(.gray)
-
-                Spacer()
-
-                // Actions
-                if request.status == .pending && onCancel != nil {
-                    Button {
-                        onCancel?()
-                    } label: {
-                        Text("Cancel Request")
-                            .font(.headline)
-                            .foregroundColor(.red)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(Color.red, lineWidth: 2)
-                            )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            Spacer()
         }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.black.opacity(0.3))
-        )
-        .scaleEffect(isFocused ? 1.05 : 1.0)
-        .shadow(radius: isFocused ? 16 : 8)
-        .animation(.easeInOut(duration: 0.15), value: isFocused)
+    }
+
+    private var infoSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            titleView
+            badgesView
+            userInfoView
+            Spacer()
+            cancelButtonView
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var titleView: some View {
+        Text(title)
+            .font(.title2)
+            .fontWeight(.bold)
+            .lineLimit(2)
+            .foregroundColor(.white)
+    }
+
+    private var badgesView: some View {
+        HStack(spacing: 12) {
+            MediaTypeBadgeView(mediaType: mediaType)
+            StatusBadge(status: request.status)
+        }
+    }
+
+    private var userInfoView: some View {
+        HStack(spacing: 20) {
+            avatarAndNameView
+            dateView
+        }
+    }
+
+    private var avatarAndNameView: some View {
+        HStack(spacing: 10) {
+            if let requestedBy = request.requestedBy {
+                avatarImageView(for: requestedBy)
+                Text(requestedBy.displayName)
+                    .font(.body)
+                    .foregroundColor(.white)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func avatarImageView(for user: User) -> some View {
+        if let avatar = user.avatar, !avatar.isEmpty {
+            // Avatar is a path like "/avatarproxy/xxx?v=xxx" - build full URL with server
+            let serverURL = UserDefaults.standard.string(forKey: "seerr_base_url") ?? ""
+            let fullAvatarURL = "\(serverURL)\(avatar)"
+            let avatarURL = URL(string: fullAvatarURL)
+
+            // Build KFImage with authentication if needed
+            let kfImage = KFImage(avatarURL)
+                .placeholder {
+                    Image(systemName: "person.circle.fill")
+                        .font(.system(size: 40))
+                        .foregroundColor(.gray)
+                }
+
+            // Apply authentication headers if we have a session cookie
+            if let sessionCookie = UserDefaults.standard.string(forKey: "sessionCookie") {
+                let modifier = AnyModifier { request in
+                    var r = request
+                    r.setValue("connect.sid=\(sessionCookie)", forHTTPHeaderField: "Cookie")
+                    return r
+                }
+                kfImage
+                    .requestModifier(modifier)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 40, height: 40)
+                    .clipShape(Circle())
+            } else {
+                kfImage
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 40, height: 40)
+                    .clipShape(Circle())
+            }
+        } else {
+            Image(systemName: "person.circle.fill")
+                .font(.system(size: 40))
+                .foregroundColor(.gray)
+        }
+    }
+
+    private var dateView: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "clock.fill")
+                .font(.body)
+                .foregroundColor(.gray)
+            Text(relativeTime)
+                .font(.body)
+                .foregroundColor(.gray)
+        }
+    }
+
+    @ViewBuilder
+    private var cancelButtonView: some View {
+        if request.status == .pending && onCancel != nil {
+            Button {
+                onCancel?()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "xmark.circle.fill")
+                    Text("Cancel Request")
+                }
+                .font(.body)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+                .padding(.vertical, 12)
+                .padding(.horizontal, 24)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.red.opacity(0.8))
+                )
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: 16)
+            .fill(isFocused ? Color.white.opacity(0.15) : Color.white.opacity(0.08))
+    }
+
+    private var cardBorder: some View {
+        RoundedRectangle(cornerRadius: 16)
+            .strokeBorder(isFocused ? Color.white.opacity(0.5) : Color.clear, lineWidth: 3)
     }
 
     // MARK: - Computed Properties
@@ -151,12 +231,12 @@ struct MediaTypeBadgeView: View {
 
     var body: some View {
         Text(mediaType == .movie ? "MOVIE" : "SERIES")
-            .font(.system(size: 11, weight: .bold))
+            .font(.system(size: 16, weight: .bold))
             .foregroundColor(.white)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
             .background(
-                RoundedRectangle(cornerRadius: 4)
+                RoundedRectangle(cornerRadius: 8)
                     .fill(mediaType == .movie ? Color.Seerr.movieBadge : Color.Seerr.seriesBadge)
             )
     }
