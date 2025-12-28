@@ -192,7 +192,7 @@ private let focusScale: CGFloat = 1.15  // 15% zoom
 
 ## Références
 
-- **Swiftfin**: `REDACTED_USER_PATH<Swiftfin/Swiftfin tvOS/Components/PosterButton.swift`
+- **Swiftfin**: `Swiftfin tvOS/Components/PosterButton.swift` (local repository)
 - **CardButtonStyle** (obsolète): `Molyseerr/Styles/CardButtonStyle.swift`
 - **Documentation officielle**: [Apple - Focus in tvOS](https://developer.apple.com/design/human-interface-guidelines/focus-and-selection)
 

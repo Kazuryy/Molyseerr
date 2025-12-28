@@ -69,7 +69,7 @@
 4. **[tvOS Design Specs](../compass_artifact_wf-bb1eb845-c2ae-4b50-b715-e1aa5b6b5769_text_markdown.md)** - Spécifications complètes tvOS
 
 ### Référence Seerr
-- **Source locale:** `REDACTED_USER_PATH<Documents/GitHub/seerr/`
+- **Source locale:** Local Seerr repository
 - **Analysé:**
   - Page de connexion (Login component)
   - TitleCard component

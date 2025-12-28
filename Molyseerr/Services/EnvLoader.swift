@@ -66,7 +66,8 @@ enum EnvLoader {
             Bundle.main.url(forResource: ".env", withExtension: nil),
 
             // Absolute path for development (works in simulator)
-            URL(fileURLWithPath: "REDACTED_USER_PATH<Molyseerr/.env")
+            // Note: Update this path to match your local setup
+            URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Molyseerr/.env")
         ].compactMap { $0 }
 
         #if DEBUG

@@ -1,6 +1,6 @@
 # Swiftfin Design System Documentation
 
-> **Source**: Analysé depuis `REDACTED_USER_PATH<Swiftfin/`
+> **Source**: Analysé depuis local Swiftfin repository
 > **Objectif**: Reproduire l'esthétique Swiftfin pour Molyseerr (client Seerr pour tvOS)
 
 ---

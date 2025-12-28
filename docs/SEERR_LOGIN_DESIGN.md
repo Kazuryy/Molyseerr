@@ -197,5 +197,5 @@ background: linear-gradient(
 
 ---
 
-**Source:** `REDACTED_USER_PATH<Documents/GitHub/seerr/src/components/Login/`
+**Source:** Local Seerr repository (`src/components/Login/`)
 **Date:** 25 décembre 2024

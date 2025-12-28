@@ -2,7 +2,7 @@
 
 Ce document compile les patterns importants extraits du code source de Seerr pour guider l'implémentation tvOS.
 
-**Source:** `REDACTED_USER_PATH<Documents/GitHub/seerr/`
+**Source:** Local Seerr repository
 
 ---
 

@@ -366,7 +366,7 @@ Molyseerr/
 
 ## Références
 
-- **Source web**: `REDACTED_USER_PATH<Documents/GitHub/seerr/`
+- **Source web**: Local Seerr repository
 - **API Documentation**: Seerr API `seerr-api.yml`
 - **Design Reference**: [docs/APPLE_TV_DESIGN_REFERENCE.md](APPLE_TV_DESIGN_REFERENCE.md)
 - **Technical Rules**: [TECH_RULES.md](../TECH_RULES.md)
