@@ -113,14 +113,43 @@ struct DiscoverView: View {
 
     /// Dynamic slider list
     private var sliderList: some View {
-        List {
-            ForEach(viewModel.enabledSliders) { slider in
-                DiscoverSliderRow(slider: slider)
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
+        VStack(spacing: 0) {
+            // Header with Requests button
+            HStack {
+                Text("Discover")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+
+                Spacer()
+
+                // Requests button
+                NavigationLink {
+                    RequestsView()
+                } label: {
+                    Label("Requests", systemImage: "tray.full.fill")
+                        .font(.headline)
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(Color.white)
+                        .cornerRadius(8)
+                }
+                .buttonStyle(.plain)
             }
+            .padding(.horizontal, 48)
+            .padding(.vertical, 24)
+
+            // Sliders list
+            List {
+                ForEach(viewModel.enabledSliders) { slider in
+                    DiscoverSliderRow(slider: slider)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets())
+                }
+            }
+            .listStyle(.plain)
         }
-        .listStyle(.plain)
     }
 }
 

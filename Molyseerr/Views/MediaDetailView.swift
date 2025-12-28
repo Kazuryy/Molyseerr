@@ -15,6 +15,8 @@ struct MediaDetailView: View {
 
     @StateObject private var viewModel = MediaDetailViewModel()
     @Environment(\.dismiss) private var dismiss
+    @State private var showingRequestSheet = false
+    @State private var toast: ToastConfig?
 
     // MARK: - Constants
     private let backdropHeight: CGFloat = 800
@@ -35,6 +37,18 @@ struct MediaDetailView: View {
         }
         .task {
             await viewModel.loadDetails(from: mediaResult)
+        }
+        .toast($toast)
+        .sheet(isPresented: $showingRequestSheet) {
+            if let movieDetails = viewModel.movieDetails {
+                RequestSheet(movieDetails: movieDetails) {
+                    await viewModel.loadDetails(from: mediaResult, refresh: true)
+                }
+            } else if let tvDetails = viewModel.tvDetails {
+                RequestSheet(tvDetails: tvDetails) {
+                    await viewModel.loadDetails(from: mediaResult, refresh: true)
+                }
+            }
         }
     }
 
@@ -250,8 +264,7 @@ struct MediaDetailView: View {
             // Request button - Using tvOS Headline spec (28-30pt)
             if viewModel.canRequest {
                 Button {
-                    // TODO: Handle request action
-                    print("Request tapped")
+                    showingRequestSheet = true
                 } label: {
                     Label("Request", systemImage: "plus.circle.fill")
                         .font(.system(size: 28, weight: .semibold))

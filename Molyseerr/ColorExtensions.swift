@@ -13,6 +13,9 @@ extension Color {
         /// Primary purple color (Seerr brand color)
         static let purple = Color(red: 0.482, green: 0.408, blue: 0.933) // #7B68EE
 
+        /// Primary color alias
+        static let primary = purple
+
         /// Secondary purple (darker) for unfocused states
         static let purpleDark = Color(red: 0.43, green: 0.28, blue: 0.8)
 

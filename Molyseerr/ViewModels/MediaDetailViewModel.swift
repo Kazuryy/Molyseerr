@@ -65,7 +65,7 @@ final class MediaDetailViewModel: ObservableObject {
     }
 
     /// Convenience method to load from MediaResult
-    func loadDetails(from mediaResult: MediaResult) async {
+    func loadDetails(from mediaResult: MediaResult, refresh: Bool = false) async {
         await loadDetails(id: mediaResult.id, mediaType: mediaResult.mediaType)
     }
 

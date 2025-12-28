@@ -116,6 +116,10 @@ final class SeerrService: ObservableObject {
             throw SeerrError.serverError
         default:
             let message = String(data: data, encoding: .utf8)
+            #if DEBUG
+            print("❌ HTTP Error \(httpResponse.statusCode)")
+            print("   Response: \(message ?? "no message")")
+            #endif
             throw SeerrError.httpError(statusCode: httpResponse.statusCode, message: message)
         }
 
@@ -487,8 +491,15 @@ final class SeerrService: ObservableObject {
     /// - Returns: Created media request
     func createRequest(_ requestBody: MediaRequestBody) async throws -> MediaRequest {
         let encoder = JSONEncoder()
-        encoder.keyEncodingStrategy = .convertToSnakeCase
+        // NOTE: Request body uses camelCase, not snake_case
+        // encoder.keyEncodingStrategy = .convertToSnakeCase  // DO NOT USE
         let jsonData = try encoder.encode(requestBody)
+
+        #if DEBUG
+        if let jsonString = String(data: jsonData, encoding: .utf8) {
+            print("📤 Request JSON: \(jsonString)")
+        }
+        #endif
 
         return try await performRequest(
             path: "/request",
