@@ -160,6 +160,7 @@ struct DiscoverSliderRow: View {
     @State private var items: [MediaResult] = []
     @State private var calendarItems: [CalendarItem] = []  // For Today's Releases
     @State private var showDeletionRequests = false  // For Deletion Requests slider
+    @State private var showRecentRequests = false  // For Recent Requests slider
     @State private var showMovieGenres = false  // For Movie Genres slider
     @State private var showTVGenres = false  // For TV Genres slider
     @State private var isLoading = false
@@ -203,6 +204,9 @@ struct DiscoverSliderRow: View {
             } else if showDeletionRequests {
                 // Display Deletion Requests with custom row
                 DeletionRequestsRow()
+            } else if showRecentRequests {
+                // Display Recent Requests with custom row
+                RecentRequestsRow()
             } else if showMovieGenres {
                 // Display Movie Genres with custom row
                 MovieGenresRow(title: slider.displayTitle)
@@ -251,6 +255,12 @@ struct DiscoverSliderRow: View {
             if slider.type == .deletionRequests {
                 // Set flag to display DeletionRequestsRow (which manages its own data)
                 showDeletionRequests = true
+                isLoading = false
+            }
+            // Special handling for Recent Requests
+            else if slider.type == .recentRequests {
+                // Set flag to display RecentRequestsRow (which manages its own data)
+                showRecentRequests = true
                 isLoading = false
             }
             // Special handling for Movie Genres
