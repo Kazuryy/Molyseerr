@@ -268,7 +268,17 @@ final class SeerrService: ObservableObject {
         primaryReleaseDateLte: String? = nil,
         language: String? = nil,
         watchRegion: String? = nil,
-        watchProviders: String? = nil
+        watchProviders: String? = nil,
+        withRuntimeGte: Int? = nil,
+        withRuntimeLte: Int? = nil,
+        voteAverageGte: Double? = nil,
+        voteAverageLte: Double? = nil,
+        voteCountGte: Int? = nil,
+        voteCountLte: Int? = nil,
+        certification: String? = nil,
+        certificationGte: String? = nil,
+        certificationLte: String? = nil,
+        certificationCountry: String? = nil
     ) async throws -> PaginatedResponse<MovieResult> {
         var queryItems = [
             URLQueryItem(name: "page", value: String(page)),
@@ -302,6 +312,36 @@ final class SeerrService: ObservableObject {
         }
         if let watchProviders = watchProviders {
             queryItems.append(URLQueryItem(name: "watchProviders", value: watchProviders))
+        }
+        if let withRuntimeGte = withRuntimeGte {
+            queryItems.append(URLQueryItem(name: "withRuntimeGte", value: String(withRuntimeGte)))
+        }
+        if let withRuntimeLte = withRuntimeLte {
+            queryItems.append(URLQueryItem(name: "withRuntimeLte", value: String(withRuntimeLte)))
+        }
+        if let voteAverageGte = voteAverageGte {
+            queryItems.append(URLQueryItem(name: "voteAverageGte", value: String(voteAverageGte)))
+        }
+        if let voteAverageLte = voteAverageLte {
+            queryItems.append(URLQueryItem(name: "voteAverageLte", value: String(voteAverageLte)))
+        }
+        if let voteCountGte = voteCountGte {
+            queryItems.append(URLQueryItem(name: "voteCountGte", value: String(voteCountGte)))
+        }
+        if let voteCountLte = voteCountLte {
+            queryItems.append(URLQueryItem(name: "voteCountLte", value: String(voteCountLte)))
+        }
+        if let certification = certification {
+            queryItems.append(URLQueryItem(name: "certification", value: certification))
+        }
+        if let certificationGte = certificationGte {
+            queryItems.append(URLQueryItem(name: "certificationGte", value: certificationGte))
+        }
+        if let certificationLte = certificationLte {
+            queryItems.append(URLQueryItem(name: "certificationLte", value: certificationLte))
+        }
+        if let certificationCountry = certificationCountry {
+            queryItems.append(URLQueryItem(name: "certificationCountry", value: certificationCountry))
         }
 
         return try await performRequest(
@@ -337,7 +377,18 @@ final class SeerrService: ObservableObject {
         firstAirDateLte: String? = nil,
         language: String? = nil,
         watchRegion: String? = nil,
-        watchProviders: String? = nil
+        watchProviders: String? = nil,
+        withRuntimeGte: Int? = nil,
+        withRuntimeLte: Int? = nil,
+        voteAverageGte: Double? = nil,
+        voteAverageLte: Double? = nil,
+        voteCountGte: Int? = nil,
+        voteCountLte: Int? = nil,
+        certification: String? = nil,
+        certificationGte: String? = nil,
+        certificationLte: String? = nil,
+        certificationCountry: String? = nil,
+        status: String? = nil
     ) async throws -> PaginatedResponse<TVResult> {
         var queryItems = [
             URLQueryItem(name: "page", value: String(page)),
@@ -371,6 +422,39 @@ final class SeerrService: ObservableObject {
         }
         if let watchProviders = watchProviders {
             queryItems.append(URLQueryItem(name: "watchProviders", value: watchProviders))
+        }
+        if let withRuntimeGte = withRuntimeGte {
+            queryItems.append(URLQueryItem(name: "withRuntimeGte", value: String(withRuntimeGte)))
+        }
+        if let withRuntimeLte = withRuntimeLte {
+            queryItems.append(URLQueryItem(name: "withRuntimeLte", value: String(withRuntimeLte)))
+        }
+        if let voteAverageGte = voteAverageGte {
+            queryItems.append(URLQueryItem(name: "voteAverageGte", value: String(voteAverageGte)))
+        }
+        if let voteAverageLte = voteAverageLte {
+            queryItems.append(URLQueryItem(name: "voteAverageLte", value: String(voteAverageLte)))
+        }
+        if let voteCountGte = voteCountGte {
+            queryItems.append(URLQueryItem(name: "voteCountGte", value: String(voteCountGte)))
+        }
+        if let voteCountLte = voteCountLte {
+            queryItems.append(URLQueryItem(name: "voteCountLte", value: String(voteCountLte)))
+        }
+        if let certification = certification {
+            queryItems.append(URLQueryItem(name: "certification", value: certification))
+        }
+        if let certificationGte = certificationGte {
+            queryItems.append(URLQueryItem(name: "certificationGte", value: certificationGte))
+        }
+        if let certificationLte = certificationLte {
+            queryItems.append(URLQueryItem(name: "certificationLte", value: certificationLte))
+        }
+        if let certificationCountry = certificationCountry {
+            queryItems.append(URLQueryItem(name: "certificationCountry", value: certificationCountry))
+        }
+        if let status = status {
+            queryItems.append(URLQueryItem(name: "status", value: status))
         }
 
         return try await performRequest(
