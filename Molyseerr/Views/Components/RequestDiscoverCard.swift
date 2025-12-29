@@ -194,7 +194,7 @@ struct RequestDiscoverCard: View {
     private func createMediaResult(from request: MediaRequest) -> MediaResult? {
         guard let media = request.media else { return nil }
 
-        if media.mediaType == .movie {
+        if media.mediaType == .movie || media.mediaType == nil {  // Default to movie if nil
             let movieResult = MovieResult(
                 id: media.tmdbId,
                 adult: nil,

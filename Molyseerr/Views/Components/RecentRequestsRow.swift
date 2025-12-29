@@ -169,7 +169,7 @@ class RecentRequestsViewModel: ObservableObject {
             for request in requests {
                 guard let media = request.media else { continue }
                 let tmdbId = media.tmdbId
-                let mediaType = media.mediaType
+                let mediaType = media.mediaType ?? .movie  // Default to movie if nil
 
                 // Only fetch if we don't have the title
                 if mediaTitles[tmdbId] == nil {

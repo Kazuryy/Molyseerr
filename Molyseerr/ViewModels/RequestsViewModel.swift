@@ -135,7 +135,9 @@ final class RequestsViewModel: ObservableObject {
         await withTaskGroup(of: (Int, String?, String?).self) { group in
             for media in mediaToFetch {
                 group.addTask {
-                    await self.fetchMediaDetails(tmdbId: media.tmdbId, mediaType: media.mediaType)
+                    // Use mediaType if available, otherwise default to .movie
+                    let type = media.mediaType ?? .movie
+                    return await self.fetchMediaDetails(tmdbId: media.tmdbId, mediaType: type)
                 }
             }
 
