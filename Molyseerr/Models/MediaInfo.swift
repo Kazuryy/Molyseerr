@@ -17,14 +17,14 @@ struct MediaInfo: Codable, Identifiable {
     let status: MediaStatus
     let status4k: MediaStatus?
     let requests: [MediaRequest]?
-    let createdAt: String
-    let updatedAt: String
+    let createdAt: String?  // Optional: not returned by /available/movies
+    let updatedAt: String?  // Optional: not returned by /available/movies
     let plexUrl: String?
     let jellyfinMediaId: String?
     let mediaAddedAt: String?
 
     // TMDB metadata fields
-    let mediaType: MediaType
+    let mediaType: MediaType?  // Optional: not returned in mediaInfo by /available/movies
     let title: String?
     let originalTitle: String?
     let overview: String?
