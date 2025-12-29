@@ -13,6 +13,10 @@ struct DiscoverView: View {
     @StateObject private var viewModel = DiscoverViewModel()
     @EnvironmentObject var configManager: ConfigManager
 
+    // Navigation states for studios and networks
+    @State private var selectedStudio: Company?
+    @State private var selectedNetwork: Company?
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -33,6 +37,12 @@ struct DiscoverView: View {
                         sliderList
                     }
                 }
+            }
+            .navigationDestination(item: $selectedStudio) { studio in
+                StudioDetailView(studio: studio)
+            }
+            .navigationDestination(item: $selectedNetwork) { network in
+                NetworkDetailView(network: network)
             }
             .task {
                 // Load slider configuration when view appears
@@ -143,9 +153,13 @@ struct DiscoverView: View {
             // Sliders list
             List {
                 ForEach(viewModel.enabledSliders) { slider in
-                    DiscoverSliderRow(slider: slider)
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets())
+                    DiscoverSliderRow(
+                        slider: slider,
+                        selectedStudio: $selectedStudio,
+                        selectedNetwork: $selectedNetwork
+                    )
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
                 }
             }
             .listStyle(.plain)
@@ -157,12 +171,18 @@ struct DiscoverView: View {
 struct DiscoverSliderRow: View {
     let slider: DiscoverSlider
 
+    // Bindings for navigation
+    @Binding var selectedStudio: Company?
+    @Binding var selectedNetwork: Company?
+
     @State private var items: [MediaResult] = []
     @State private var calendarItems: [CalendarItem] = []  // For Today's Releases
     @State private var showDeletionRequests = false  // For Deletion Requests slider
     @State private var showRecentRequests = false  // For Recent Requests slider
     @State private var showMovieGenres = false  // For Movie Genres slider
     @State private var showTVGenres = false  // For TV Genres slider
+    @State private var showStudios = false  // For Studios slider
+    @State private var showNetworks = false  // For Networks slider
     @State private var isLoading = false
     @State private var error: String?
     @State private var hasLoaded = false
@@ -213,6 +233,12 @@ struct DiscoverSliderRow: View {
             } else if showTVGenres {
                 // Display TV Genres with custom row
                 TVGenresRow(title: slider.displayTitle)
+            } else if showStudios {
+                // Display Studios with custom row
+                StudiosRow(slider: slider, selectedStudio: $selectedStudio)
+            } else if showNetworks {
+                // Display Networks with custom row
+                NetworksRow(slider: slider, selectedNetwork: $selectedNetwork)
             } else if !calendarItems.isEmpty {
                 // Display Today's Releases with custom cards
                 TodayReleasesRow(title: slider.displayTitle, items: calendarItems)
@@ -273,6 +299,18 @@ struct DiscoverSliderRow: View {
             else if slider.type == .tvGenres {
                 // Set flag to display TVGenresRow (which manages its own data)
                 showTVGenres = true
+                isLoading = false
+            }
+            // Special handling for Studios
+            else if slider.type == .studios {
+                // Set flag to display StudiosRow (which manages its own data)
+                showStudios = true
+                isLoading = false
+            }
+            // Special handling for Networks
+            else if slider.type == .networks {
+                // Set flag to display NetworksRow (which manages its own data)
+                showNetworks = true
                 isLoading = false
             }
             // Special handling for Today's Releases
