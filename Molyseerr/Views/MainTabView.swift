@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// Main tab navigation for tvOS app
-/// Three main sections: Discover, Movies, and TV Shows
+/// Four main sections: Discover, Movies, TV Shows, and Requests
 struct MainTabView: View {
     @EnvironmentObject var configManager: ConfigManager
 
@@ -17,6 +17,18 @@ struct MainTabView: View {
             DiscoverView()
                 .tabItem {
                     Label("Discover", systemImage: "star.fill")
+                }
+                .environmentObject(configManager)
+
+            MoviesView()
+                .tabItem {
+                    Label("Movies", systemImage: "film")
+                }
+                .environmentObject(configManager)
+
+            SeriesView()
+                .tabItem {
+                    Label("TV Shows", systemImage: "tv")
                 }
                 .environmentObject(configManager)
 
