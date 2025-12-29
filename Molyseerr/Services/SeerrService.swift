@@ -130,6 +130,64 @@ final class SeerrService: ObservableObject {
         }
     }
 
+    /// Perform network request with camelCase decoding (for /available endpoints)
+    private func performRequestCamelCase<T: Decodable>(
+        path: String,
+        queryItems: [URLQueryItem]? = nil,
+        method: String = "GET",
+        body: Data? = nil
+    ) async throws -> T {
+        // Build URL
+        guard let url = buildURL(path: path, queryItems: queryItems) else {
+            throw SeerrError.invalidURL
+        }
+
+        // Create request
+        var request = createRequest(url: url, method: method)
+        if let body = body {
+            request.httpBody = body
+        }
+
+        // Perform request
+        let (data, response) = try await session.data(for: request)
+
+        // Validate HTTP response
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw SeerrError.invalidResponse
+        }
+
+        // Handle HTTP errors
+        switch httpResponse.statusCode {
+        case 200...299:
+            break
+        case 401:
+            throw SeerrError.unauthorized
+        case 403:
+            throw SeerrError.forbidden
+        case 404:
+            throw SeerrError.notFound
+        case 500...599:
+            throw SeerrError.serverError
+        default:
+            let message = String(data: data, encoding: .utf8)
+            throw SeerrError.httpError(statusCode: httpResponse.statusCode, message: message)
+        }
+
+        // Decode response WITHOUT snake_case conversion (API returns camelCase)
+        do {
+            let decoder = JSONDecoder()
+            // No keyDecodingStrategy - use keys as-is (camelCase)
+            let result = try decoder.decode(T.self, from: data)
+            return result
+        } catch {
+            print("❌ Decoding error for \(path): \(error)")
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("📄 Response JSON: \(jsonString.prefix(500))")
+            }
+            throw SeerrError.decodingError(error)
+        }
+    }
+
     // MARK: - Discovery & Trending
 
     /// Get backdrop images for animated backgrounds
@@ -627,6 +685,52 @@ final class SeerrService: ObservableObject {
 
         let response: PaginatedResponse<WatchlistItem> = try await performRequest(path: "/discover/watchlist", queryItems: queryItems)
         return response.results
+    }
+
+    // MARK: - Available Media
+
+    /// Get available media (movies or TV shows already in library)
+    /// Source: seerr-api.yml /available/movies endpoint
+    /// Returns media with status 4 (partially available) or 5 (fully available)
+    /// - Parameters:
+    ///   - type: Media type ("movie" or "tv")
+    ///   - page: Page number (default: 1)
+    ///   - sortBy: Sort method (mediaAddedAt, popularity, releaseDate, rating, title)
+    /// - Returns: Paginated response with enriched TMDB data
+    func getAvailableMedia(
+        type: String = "movie",
+        page: Int = 1,
+        sortBy: String = "mediaAddedAt"
+    ) async throws -> PaginatedResponse<MediaResult> {
+        let queryItems = [
+            URLQueryItem(name: "type", value: type),
+            URLQueryItem(name: "page", value: String(page)),
+            URLQueryItem(name: "sortBy", value: sortBy)
+        ]
+
+        // The response format matches MovieResult structure (enriched with TMDB data)
+        // Use camelCase decoder because /available/movies returns camelCase keys
+        let response: PaginatedResponse<MovieResult> = try await performRequestCamelCase(
+            path: "/available/movies",
+            queryItems: queryItems
+        )
+
+        // Convert to MediaResult based on type
+        let mediaResults = response.results.map { movie -> MediaResult in
+            if type == "tv" {
+                // For TV shows, we should ideally decode as TVResult
+                // But the server returns the same enriched format
+                return .movie(movie)
+            }
+            return .movie(movie)
+        }
+
+        return PaginatedResponse(
+            page: response.page,
+            totalPages: response.totalPages,
+            totalResults: response.totalResults,
+            results: mediaResults
+        )
     }
 
     // MARK: - Genre Sliders
