@@ -18,7 +18,7 @@ struct MediaCardView: View {
     // MARK: - Constants
     private let cardWidth: CGFloat = 250
     private let cardHeight: CGFloat = 375  // 2:3 ratio
-    private let focusScale: CGFloat = 1.1
+    private let focusScale: CGFloat = 1.05
     private let cornerRadius: CGFloat = 8
 
     var body: some View {
