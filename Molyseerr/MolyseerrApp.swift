@@ -54,8 +54,8 @@ struct RootView: View {
                 LoginView()
                     .environmentObject(configManager)
             } else {
-                // Step 3: Main app - Discover page
-                DiscoverView()
+                // Step 3: Main app - Tab navigation (Discover, Movies, TV Shows)
+                MainTabView()
                     .environmentObject(configManager)
             }
         }
