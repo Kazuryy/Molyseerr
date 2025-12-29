@@ -352,7 +352,15 @@ struct DiscoverSliderRow: View {
             let response = try await service.search(query: query, page: 1)
             return Array(response.results.prefix(20))
 
-        case .studioList, .networkList, .available:
+        case .available(let mediaType):
+            let response = try await service.getAvailableMedia(
+                type: mediaType.rawValue,
+                page: 1,
+                sortBy: "mediaAddedAt"
+            )
+            return Array(response.results.prefix(20))
+
+        case .studioList, .networkList:
             // These require special UI, not standard media rows
             throw SeerrError.notImplemented
 
@@ -487,7 +495,7 @@ struct DiscoverSliderRow: View {
         return requests.compactMap { request -> MediaResult? in
             guard let media = request.media else { return nil }
 
-            if media.mediaType == .movie {
+            if media.mediaType == .movie || media.mediaType == nil {  // Default to movie if nil
                 let movie = MovieResult(
                     id: media.tmdbId,
                     adult: false,
