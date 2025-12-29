@@ -65,12 +65,14 @@ struct SliderConfigMapper {
             return .error("Deletion Requests slider requires additional implementation")
 
         case .availableMovies:
-            // TODO: Needs special endpoint or filter
-            return .error("Available Movies slider requires additional implementation")
+            // Available Movies: Shows movies already in library (status 4 or 5)
+            // Uses /api/v1/available/movies?type=movie&sortBy=mediaAddedAt
+            return .available(type: .movie)
 
         case .availableTV:
-            // TODO: Needs special endpoint or filter
-            return .error("Available TV slider requires additional implementation")
+            // Available TV: Shows TV shows already in library (status 4 or 5)
+            // Uses /api/v1/available/movies?type=tv&sortBy=mediaAddedAt
+            return .available(type: .tv)
 
         case .expiringSoon:
             // TODO: Same issue as recentlyAdded - MediaInfo needs special handling
