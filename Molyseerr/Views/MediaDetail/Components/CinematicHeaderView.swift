@@ -239,7 +239,7 @@ struct CinematicHeaderView: View {
     }
 
     private var actionButtons: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: 32) {  // Increased from 20 to 32 to prevent overlap when focused
             // Request button (primary action)
             if canRequest {
                 Button {
