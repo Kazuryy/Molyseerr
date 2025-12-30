@@ -8,7 +8,8 @@
 import SwiftUI
 
 /// Action button style for prominent buttons (Request, Watchlist, Trailer, etc.)
-/// Inspired by Swiftfin's button handling with Molyseerr colors
+/// Uses native tvOS CardButtonStyle for automatic focus handling
+/// Reference: docs/TVOS_FOCUS_GUIDE.md - Native focus prevents double zoom
 struct ActionButtonStyle: PrimitiveButtonStyle {
 
     enum Variant {
@@ -17,9 +18,6 @@ struct ActionButtonStyle: PrimitiveButtonStyle {
     }
 
     let variant: Variant
-
-    @FocusState
-    private var isFocused: Bool
 
     init(variant: Variant = .secondary) {
         self.variant = variant
@@ -34,32 +32,15 @@ struct ActionButtonStyle: PrimitiveButtonStyle {
         }
     }
 
-    private var focusedBackgroundColor: Color {
-        switch variant {
-        case .primary:
-            return Color.Seerr.indigo.opacity(0.9)
-        case .secondary:
-            return Color.white.opacity(0.3)
-        }
-    }
-
     @ViewBuilder
     private func contentView(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 30, weight: .semibold))
             .foregroundColor(.white)
-            .padding(.horizontal, 40)
+            .padding(.horizontal, 28)
             .padding(.vertical, 16)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isFocused ? focusedBackgroundColor : backgroundColor)
-            )
-            .scaleEffect(isFocused ? 1.08 : 1.0)
-            .shadow(
-                color: isFocused ? (variant == .primary ? Color.Seerr.indigo.opacity(0.6) : Color.white.opacity(0.3)) : .black.opacity(0.4),
-                radius: isFocused ? 25 : 15
-            )
-            .animation(.easeInOut(duration: 0.15), value: isFocused)
+            .background(backgroundColor)
+            .cornerRadius(12)
     }
 
     func makeBody(configuration: Configuration) -> some View {
@@ -68,8 +49,8 @@ struct ActionButtonStyle: PrimitiveButtonStyle {
         } label: {
             contentView(configuration: configuration)
         }
-        .buttonStyle(.borderless)
-        .focused($isFocused)
+        .buttonStyle(.card)  // Native tvOS CardButtonStyle handles focus/zoom automatically
+        .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
     }
 }
 
