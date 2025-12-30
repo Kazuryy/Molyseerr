@@ -25,8 +25,8 @@ struct EpisodeSelector: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Title
-            Text("Episodes")
+            // Title - "Seasons" localized
+            Text(localizedSeasonsTitle)
                 .font(.system(size: 38, weight: .semibold))
                 .foregroundColor(.white)
                 .padding(.leading, horizontalPadding)
@@ -106,6 +106,46 @@ struct EpisodeSelector: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 60)
+    }
+
+    // MARK: - Localization
+
+    /// Localized title for "Seasons" based on user's preferred language
+    private var localizedSeasonsTitle: String {
+        let locale = userLanguage
+        let translations: [String: String] = [
+            "ar": "المواسم",            // Arabic (plural of season)
+            "cs": "Sezóny",            // Czech
+            "da": "Sæsoner",           // Danish
+            "de": "Staffeln",          // German
+            "el": "Κύκλοι",            // Greek
+            "en": "Seasons",           // English
+            "es": "Temporadas",        // Spanish
+            "fi": "Kaudet",            // Finnish
+            "fr": "Saisons",           // French
+            "he": "עונות",             // Hebrew
+            "hr": "Sezone",            // Croatian
+            "hu": "Évadok",            // Hungarian
+            "it": "Stagioni",          // Italian
+            "ja": "シーズン",           // Japanese
+            "ko": "시즌",               // Korean
+            "nl": "Seizoenen",         // Dutch
+            "no": "Sesonger",          // Norwegian
+            "pl": "Sezony",            // Polish
+            "pt": "Temporadas",        // Portuguese
+            "pt-BR": "Temporadas",     // Portuguese (Brazil)
+            "ro": "Sezoane",           // Romanian
+            "ru": "Сезоны",            // Russian
+            "sk": "Série",             // Slovak
+            "sv": "Säsonger",          // Swedish
+            "th": "ซีซัน",             // Thai
+            "tr": "Sezonlar",          // Turkish
+            "uk": "Сезони",            // Ukrainian
+            "zh": "季",                // Chinese
+            "zh-CN": "季",             // Chinese (Simplified)
+            "zh-TW": "季"              // Chinese (Traditional)
+        ]
+        return translations[locale] ?? "Seasons"
     }
 
     // MARK: - Data Loading
