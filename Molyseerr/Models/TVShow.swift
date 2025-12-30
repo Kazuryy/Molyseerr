@@ -31,6 +31,21 @@ struct Season: Codable, Identifiable {
     let overview: String?
     let posterPath: String?
     let seasonNumber: Int
+
+    /// Display title for the season (handles specials, unnamed seasons, etc.)
+    var displayTitle: String {
+        // If we have a name from TMDB, use it
+        if let name = name, !name.isEmpty {
+            return name
+        }
+
+        // Otherwise, generate a name based on season number
+        if seasonNumber == 0 {
+            return "Specials"
+        } else {
+            return "Season \(seasonNumber)"
+        }
+    }
 }
 
 /// TV show search result (from Discover/Trending)
@@ -130,6 +145,36 @@ struct TVDetails: Codable, Identifiable {
         guard let firstAirDate = firstAirDate, !firstAirDate.isEmpty else { return nil }
         let components = firstAirDate.split(separator: "-")
         return components.first.map(String.init)
+    }
+
+    /// Metadata provider to use (TMDB or TVDB)
+    /// Returns TVDB if tvdbId is present, otherwise defaults to TMDB
+    var metadataProvider: MetadataProvider {
+        if let tvdbId = mediaInfo?.tvdbId, tvdbId > 0 {
+            return .tvdb(id: tvdbId)
+        } else {
+            return .tmdb(id: id)
+        }
+    }
+}
+
+/// Metadata provider enum
+enum MetadataProvider {
+    case tmdb(id: Int)
+    case tvdb(id: Int)
+
+    var isTVDB: Bool {
+        if case .tvdb = self {
+            return true
+        }
+        return false
+    }
+
+    var id: Int {
+        switch self {
+        case .tmdb(let id), .tvdb(let id):
+            return id
+        }
     }
 }
 

@@ -52,8 +52,28 @@ enum TMDBImageHelper {
         return imageURL(path: path, size: .posterLarge)
     }
 
+    /// Get poster URL with custom size
+    static func posterURL(path: String?, size: ImageSize) -> URL? {
+        return imageURL(path: path, size: size)
+    }
+
     /// Get backdrop URL for hero banner (original size as per TECH_RULES.md)
     static func backdropURL(path: String?) -> URL? {
         return imageURL(path: path, size: .original)
+    }
+
+    /// Get backdrop URL with custom size
+    static func backdropURL(path: String?, size: ImageSize) -> URL? {
+        return imageURL(path: path, size: size)
+    }
+
+    /// Get logo URL (for production companies, networks)
+    static func logoURL(path: String?) -> URL? {
+        return imageURL(path: path, size: .posterMedium)
+    }
+
+    /// Get still/thumbnail URL for episodes (16:9 landscape images)
+    static func stillURL(path: String?) -> URL? {
+        return imageURL(path: path, size: .backdropMedium)
     }
 }

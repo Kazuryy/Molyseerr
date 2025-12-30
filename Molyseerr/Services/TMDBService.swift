@@ -88,6 +88,40 @@ class TMDBService {
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         return try decoder.decode(TMDBTVDetails.self, from: data)
     }
+
+    /// Get season details with episodes directly from TMDB
+    /// - Parameters:
+    ///   - tvID: TMDB TV show ID
+    ///   - seasonNumber: Season number
+    ///   - language: Language code (default: "en")
+    /// - Returns: Array of episodes for the season
+    func fetchSeasonDetails(tvID: Int, seasonNumber: Int, language: String = "en") async throws -> [Episode] {
+        let endpoint = "\(baseURL)/tv/\(tvID)/season/\(seasonNumber)"
+        var components = URLComponents(string: endpoint)!
+        components.queryItems = [
+            URLQueryItem(name: "api_key", value: apiKey),
+            URLQueryItem(name: "language", value: language)
+        ]
+
+        guard let url = components.url else {
+            throw TMDBError.invalidURL
+        }
+
+        let (data, response) = try await URLSession.shared.data(from: url)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw TMDBError.invalidResponse
+        }
+
+        guard httpResponse.statusCode == 200 else {
+            throw TMDBError.httpError(statusCode: httpResponse.statusCode)
+        }
+
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let seasonDetails = try decoder.decode(TMDBSeasonDetails.self, from: data)
+        return seasonDetails.episodes
+    }
 }
 
 // MARK: - TMDB Models
@@ -133,6 +167,14 @@ struct TMDBTVDetails: Codable {
 struct TMDBGenre: Codable {
     let id: Int
     let name: String
+}
+
+/// TMDB Season Details (with episodes)
+struct TMDBSeasonDetails: Codable {
+    let id: Int
+    let name: String?
+    let seasonNumber: Int?
+    let episodes: [Episode]
 }
 
 // MARK: - Errors
