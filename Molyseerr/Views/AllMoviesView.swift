@@ -25,7 +25,7 @@ struct AllMoviesView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Color.Seerr.background.ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     // Header with Filter Button
@@ -97,7 +97,7 @@ struct AllMoviesView: View {
                     .foregroundColor(.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Color.Seerr.purple)
+                    .background(Color.Seerr.indigo)
                     .clipShape(Circle())
             }
 
@@ -158,11 +158,11 @@ struct AllMoviesView: View {
                 Label("Retry", systemImage: "arrow.clockwise")
                     .font(.headline)
                     .padding()
-                    .background(Color.Seerr.purple)
+                    .background(Color.Seerr.indigo)
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
         }
         .padding()
     }

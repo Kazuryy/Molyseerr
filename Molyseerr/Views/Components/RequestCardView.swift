@@ -185,7 +185,7 @@ struct RequestCardView: View {
                         .fill(Color.red.opacity(0.8))
                 )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
         }
     }
 

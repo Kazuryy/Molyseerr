@@ -28,7 +28,7 @@ struct ServerConfigView: View {
                 VStack(spacing: 16) {
                     Image(systemName: "server.rack")
                         .font(.system(size: 80, weight: .thin))
-                        .foregroundColor(Color.Seerr.purple)
+                        .foregroundColor(Color.Seerr.indigo)
 
                     Text("Molyseerr")
                         .font(.largeTitle)

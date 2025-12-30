@@ -274,7 +274,7 @@ private struct LoginFormPreview: View {
             VStack(spacing: 12) {
                 Image(systemName: "film.stack")
                     .font(.system(size: 80))
-                    .foregroundColor(Color.Seerr.purple)
+                    .foregroundColor(Color.Seerr.indigo)
                 
                 Text("Molyseerr")
                     .font(.system(size: 48, weight: .bold))
@@ -318,7 +318,7 @@ private struct LoginFormPreview: View {
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: 80)
-                .background(Color.Seerr.purple)
+                .background(Color.Seerr.indigo)
                 .cornerRadius(8)
             }
             .padding(.top, 20)
@@ -347,8 +347,8 @@ private struct ColorPalettePreview: View {
                     .padding(.top, 40)
                 
                 VStack(spacing: 20) {
-                    ColorSwatch(name: "Purple", color: Color.Seerr.purple)
-                    ColorSwatch(name: "Purple Dark", color: Color.Seerr.purpleDark)
+                    ColorSwatch(name: "Purple", color: Color.Seerr.indigo)
+                    ColorSwatch(name: "Purple Dark", color: Color.Seerr.indigoDark)
                     ColorSwatch(name: "Background Dark", color: Color.Seerr.backgroundDark)
                     ColorSwatch(name: "Background Darker", color: Color.Seerr.backgroundDarker)
                     ColorSwatch(name: "Card Background", color: Color.Seerr.cardBackground)
@@ -358,7 +358,7 @@ private struct ColorPalettePreview: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
+        .background(Color.Seerr.background)
     }
 }
 

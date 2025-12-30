@@ -32,7 +32,7 @@ struct TVGenreDetailView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.Seerr.background.ignoresSafeArea()
 
             Group {
                 if viewModel.isLoading && viewModel.shows.isEmpty {
@@ -91,11 +91,11 @@ struct TVGenreDetailView: View {
                 Label("Retry", systemImage: "arrow.clockwise")
                     .font(.headline)
                     .padding()
-                    .background(Color.Seerr.purple)
+                    .background(Color.Seerr.indigo)
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
         }
     }
 

@@ -59,7 +59,7 @@ struct CompanyCard: View {
             .scaleEffect(isFocused ? 1.08 : 1.0)
             .animation(.easeInOut(duration: 0.15), value: isFocused)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.borderless)
         .focused($isFocused)
     }
 }

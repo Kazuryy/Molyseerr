@@ -172,7 +172,7 @@ struct DeletionSliderCard: View {
                 .foregroundColor(.white)
                 .cornerRadius(8)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
             .disabled(isVoting)
 
             // Remove button
@@ -194,7 +194,7 @@ struct DeletionSliderCard: View {
                 .foregroundColor(.white)
                 .cornerRadius(8)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
             .disabled(isVoting)
         }
     }

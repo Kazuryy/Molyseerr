@@ -86,7 +86,7 @@ struct RequestSheet: View {
             }
         }
         .frame(width: 900, height: 700)
-        .background(Color.black.opacity(0.95))
+        .background(Color.Seerr.background.opacity(0.95))
         .cornerRadius(16)
         .toast($toast)
     }
@@ -102,7 +102,7 @@ struct RequestSheet: View {
         }
         .padding(.horizontal, 48)
         .padding(.vertical, 24)
-        .background(Color.black.opacity(0.3))
+        .background(Color.Seerr.background.opacity(0.3))
     }
 
     // MARK: - Media Info
@@ -170,7 +170,7 @@ struct RequestSheet: View {
                         .fill(viewModel.areAllSeasonsSelected ? Color.Seerr.primary : Color.white.opacity(0.2))
                 )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
             .focused($focusedField, equals: .allSeasonsToggle)
 
             // Individual Season Toggles
@@ -199,7 +199,7 @@ struct RequestSheet: View {
                                 .fill(isSelected ? Color.Seerr.primary : Color.white.opacity(0.2))
                         )
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.borderless)
                     .focused($focusedField, equals: .seasonToggle(seasonNumber))
                 }
             }
@@ -233,7 +233,7 @@ struct RequestSheet: View {
                     .fill(viewModel.is4K ? Color.Seerr.primary : Color.white.opacity(0.2))
             )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.borderless)
         .focused($focusedField, equals: .is4kToggle)
     }
 

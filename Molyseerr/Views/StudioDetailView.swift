@@ -33,7 +33,7 @@ struct StudioDetailView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.Seerr.background.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 // Header with studio logo
@@ -122,11 +122,11 @@ struct StudioDetailView: View {
                 Label("Retry", systemImage: "arrow.clockwise")
                     .font(.headline)
                     .padding()
-                    .background(Color.Seerr.purple)
+                    .background(Color.Seerr.indigo)
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
         }
         .frame(maxHeight: .infinity)
     }

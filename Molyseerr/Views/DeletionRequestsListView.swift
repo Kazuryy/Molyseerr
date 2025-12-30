@@ -55,7 +55,7 @@ struct DeletionRequestsListView: View {
             .padding(.horizontal, 90)
             .padding(.vertical, 40)
         }
-        .background(Color.black)
+        .background(Color.Seerr.background)
         .task {
             guard !isLoaded else { return }
             await viewModel.loadDeletionRequests(reset: true)
@@ -97,7 +97,7 @@ struct DeletionRequestsListView: View {
                             .foregroundColor(viewModel.currentFilter == option.1 ? Color.black : Color.white)
                             .cornerRadius(8)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.borderless)
                 }
             }
         }
@@ -150,7 +150,7 @@ struct DeletionRequestsListView: View {
                     .background(Color.white.opacity(0.2))
                     .cornerRadius(10)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.borderless)
             }
         }
     }
@@ -205,7 +205,7 @@ struct DeletionRequestsListView: View {
                     await viewModel.refresh()
                 }
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
             .padding(.horizontal, 20)
             .padding(.vertical, 10)
             .background(Color.white.opacity(0.2))

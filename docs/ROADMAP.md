@@ -193,6 +193,37 @@ Dans MediaDetailView, implémenter:
 
 ---
 
+### 3.5 Intégration Jellyfin/Swiftfin - Bouton Play
+**Pourquoi?** Lancer la lecture directe depuis Molyseerr vers Swiftfin
+
+**Context:** Swiftfin a une infrastructure de deep linking partiellement implémentée mais incomplète
+- URL scheme prévu: `jellyfin://users/{UserID}/items/{ItemID}`
+- Code de parsing existe dans AppURLHandler.swift mais navigation désactivée (TODO ligne 83)
+- tvOS n'a pas le URL scheme configuré dans Info.plist
+
+**Tâches:**
+- [ ] Vérifier si Swiftfin a complété son système de deep linking
+- [ ] Ajouter détection si contenu disponible sur Jellyfin (via API)
+- [ ] Bouton "Play on Jellyfin" dans MediaDetailView
+- [ ] Construire URL deep link: `jellyfin://users/{UserID}/items/{ItemID}`
+- [ ] Fallback gracieux si Swiftfin non installé
+- [ ] Option alternative: afficher instructions d'installation Swiftfin
+
+**Estimation:** 2-3 jours
+**Dépend de:**
+- Swiftfin finisse son implémentation deep linking (actuellement TODO)
+- API pour vérifier disponibilité contenu sur Jellyfin
+- MediaDetailView (1.2)
+
+**Fichiers Swiftfin à surveiller:**
+- `/Swiftfin/Swiftfin/Objects/AppURLHandler.swift` (ligne 83 - TODO à résoudre)
+- `/Swiftfin/Swiftfin tvOS/Resources/Info.plist` (manque CFBundleURLTypes)
+- `/Swiftfin/Shared/Coordinators/Navigation/NavigationRoute/NavigationRoute+Item.swift`
+
+**Statut:** ⏸️ EN ATTENTE - Swiftfin doit compléter deep linking d'abord
+
+---
+
 ## 🔐 Phase 4: Auth & Multi-utilisateurs (FUTUR)
 
 ### 4.1 Login Screen

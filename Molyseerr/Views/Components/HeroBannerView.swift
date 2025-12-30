@@ -166,7 +166,7 @@ struct HeroBannerView: View {
                 .foregroundColor(.black)
                 .cornerRadius(12)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
             .focusable()
             .focused($focusedButton, equals: .play)
             .scaleEffect(focusedButton == .play ? 1.08 : 1.0)
@@ -184,7 +184,7 @@ struct HeroBannerView: View {
                     .background(Color.white.opacity(0.15))
                     .clipShape(Circle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
             .focusable()
             .focused($focusedButton, equals: .info)
             .scaleEffect(focusedButton == .info ? 1.15 : 1.0)
@@ -202,7 +202,7 @@ struct HeroBannerView: View {
                     .background(Color.white.opacity(0.15))
                     .clipShape(Circle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
             .focusable()
             .focused($focusedButton, equals: .next)
             .scaleEffect(focusedButton == .next ? 1.15 : 1.0)

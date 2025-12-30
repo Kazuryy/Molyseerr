@@ -29,7 +29,7 @@ struct SettingsView: View {
             // Background gradient (matching login/server config)
             LinearGradient(
                 gradient: Gradient(colors: [
-                    Color.black,
+                    Color.Seerr.background,
                     Color(red: 0.3, green: 0.1, blue: 0.4)  // Dark purple
                 ]),
                 startPoint: .top,

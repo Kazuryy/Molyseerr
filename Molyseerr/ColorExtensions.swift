@@ -10,14 +10,17 @@ import SwiftUI
 extension Color {
     /// Seerr brand colors and UI colors
     struct Seerr {
-        /// Primary purple color (Seerr brand color)
-        static let purple = Color(red: 0.482, green: 0.408, blue: 0.933) // #7B68EE
+        /// Primary indigo color (Seerr brand color - Tailwind indigo-500)
+        static let indigo = Color(red: 0.388, green: 0.400, blue: 0.945) // #6366F1
 
         /// Primary color alias
-        static let primary = purple
+        static let primary = indigo
 
-        /// Secondary purple (darker) for unfocused states
-        static let purpleDark = Color(red: 0.43, green: 0.28, blue: 0.8)
+        /// Indigo 600 (darker) for hover/pressed states (Tailwind indigo-600)
+        static let indigoDark = Color(red: 0.310, green: 0.275, blue: 0.898) // #4F46E5
+
+        /// Indigo 400 (lighter) for highlights (Tailwind indigo-400)
+        static let indigoLight = Color(red: 0.514, green: 0.537, blue: 0.980) // #818CF8
 
         /// Input field background color
         static let inputBackground = Color(red: 0.14, green: 0.15, blue: 0.19)  // #24262F
@@ -30,6 +33,9 @@ extension Color {
 
         /// Card background color
         static let cardBackground = Color(red: 0.11, green: 0.12, blue: 0.16)  // #1c1e29
+
+        /// Main app background color (Tailwind gray-900: #111827)
+        static let background = Color(red: 17/255, green: 24/255, blue: 39/255)
 
         /// Border color
         static let border = Color.white.opacity(0.15)
@@ -51,7 +57,7 @@ extension Color {
         // MARK: - Media Status Badge Colors (matching webapp Seerr)
 
         /// Processing status (Tailwind indigo-500: #6366F1)
-        static let statusProcessing = Color(red: 0.388, green: 0.400, blue: 0.945)
+        static let statusProcessing = indigo
 
         /// Available status (Tailwind green-500: #22C55E)
         static let statusAvailable = Color(red: 0.133, green: 0.773, blue: 0.369)

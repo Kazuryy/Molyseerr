@@ -33,7 +33,7 @@ struct NetworkDetailView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.Seerr.background.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 // Header with network logo
@@ -122,11 +122,11 @@ struct NetworkDetailView: View {
                 Label("Retry", systemImage: "arrow.clockwise")
                     .font(.headline)
                     .padding()
-                    .background(Color.Seerr.purple)
+                    .background(Color.Seerr.indigo)
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
         }
         .frame(maxHeight: .infinity)
     }

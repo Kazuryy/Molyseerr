@@ -29,7 +29,7 @@ struct RecentRequestsRow: View {
                     }
                     .foregroundColor(.white.opacity(0.8))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.borderless)
             }
             .padding(.horizontal, 48)
 
@@ -49,10 +49,7 @@ struct RecentRequestsRow: View {
                     .foregroundColor(.red)
                     .padding(.horizontal, 48)
             } else if viewModel.requests.isEmpty {
-                Text("No recent requests")
-                    .foregroundColor(.white.opacity(0.6))
-                    .padding(.horizontal, 48)
-                    .padding(.vertical, 30)
+                emptyView
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 40) {
@@ -77,6 +74,27 @@ struct RecentRequestsRow: View {
         .task {
             await viewModel.fetchRecentRequests()
         }
+    }
+
+    /// Empty state when no recent requests
+    private var emptyView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "tray")
+                .font(.system(size: 60))
+                .foregroundColor(.secondary)
+
+            Text("No Recent Requests")
+                .font(.title2)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+
+            Text("There are no recent media requests.")
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 60)
     }
 }
 

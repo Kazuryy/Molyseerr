@@ -89,7 +89,7 @@ struct FilterView: View {
             }
             .padding()
             .frame(maxWidth: .infinity)
-            .background(filterViewModel.sortBy == option ? Color.Seerr.purple : Color.gray.opacity(0.3))
+            .background(filterViewModel.sortBy == option ? Color.Seerr.indigo : Color.gray.opacity(0.3))
             .cornerRadius(10)
         }
         .buttonStyle(.card)
@@ -145,7 +145,7 @@ struct FilterView: View {
             }
             .padding()
             .frame(maxWidth: .infinity)
-            .background(isSelected ? Color.Seerr.purple : Color.gray.opacity(0.3))
+            .background(isSelected ? Color.Seerr.indigo : Color.gray.opacity(0.3))
             .cornerRadius(10)
         }
         .buttonStyle(.card)
@@ -187,7 +187,7 @@ struct FilterView: View {
                                     .font(.title2)
                                     .foregroundColor(.white)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.borderless)
 
                             Button {
                                 if filterViewModel.runtimeMin < 400 {
@@ -198,7 +198,7 @@ struct FilterView: View {
                                     .font(.title2)
                                     .foregroundColor(.white)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.borderless)
                         }
                     }
 
@@ -220,7 +220,7 @@ struct FilterView: View {
                                     .font(.title2)
                                     .foregroundColor(.white)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.borderless)
 
                             Button {
                                 if filterViewModel.runtimeMax < 400 {
@@ -231,7 +231,7 @@ struct FilterView: View {
                                     .font(.title2)
                                     .foregroundColor(.white)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.borderless)
                         }
                     }
                 }
@@ -278,7 +278,7 @@ struct FilterView: View {
                                     .font(.title2)
                                     .foregroundColor(.white)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.borderless)
 
                             Button {
                                 if filterViewModel.ratingMin < 10 {
@@ -289,7 +289,7 @@ struct FilterView: View {
                                     .font(.title2)
                                     .foregroundColor(.white)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.borderless)
                         }
                     }
 
@@ -311,7 +311,7 @@ struct FilterView: View {
                                     .font(.title2)
                                     .foregroundColor(.white)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.borderless)
 
                             Button {
                                 if filterViewModel.ratingMax < 10 {
@@ -322,7 +322,7 @@ struct FilterView: View {
                                     .font(.title2)
                                     .foregroundColor(.white)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.borderless)
                         }
                     }
                 }
@@ -369,7 +369,7 @@ struct FilterView: View {
                                     .font(.title2)
                                     .foregroundColor(.white)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.borderless)
 
                             Button {
                                 if filterViewModel.voteCountMin < 1000 {
@@ -380,7 +380,7 @@ struct FilterView: View {
                                     .font(.title2)
                                     .foregroundColor(.white)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.borderless)
                         }
                     }
 
@@ -402,7 +402,7 @@ struct FilterView: View {
                                     .font(.title2)
                                     .foregroundColor(.white)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.borderless)
 
                             Button {
                                 if filterViewModel.voteCountMax < 1000 {
@@ -413,7 +413,7 @@ struct FilterView: View {
                                     .font(.title2)
                                     .foregroundColor(.white)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.borderless)
                         }
                     }
                 }
@@ -469,7 +469,7 @@ struct FilterView: View {
             }
             .padding()
             .frame(maxWidth: .infinity)
-            .background(isSelected ? Color.Seerr.purple : Color.gray.opacity(0.3))
+            .background(isSelected ? Color.Seerr.indigo : Color.gray.opacity(0.3))
             .cornerRadius(10)
         }
         .buttonStyle(.card)
@@ -504,7 +504,7 @@ struct FilterView: View {
                     .foregroundColor(.white)
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color.Seerr.purple)
+                    .background(Color.Seerr.indigo)
                     .cornerRadius(10)
             }
             .buttonStyle(.card)

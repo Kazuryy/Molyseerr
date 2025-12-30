@@ -91,21 +91,21 @@ struct InputStyleExamples: View {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(
                                     focusedField == .signIn ? 
-                                        Color.Seerr.purple :
-                                        Color.Seerr.purpleDark
+                                        Color.Seerr.indigo :
+                                        Color.Seerr.indigoDark
                                 )
                         )
                         .scaleEffect(focusedField == .signIn ? 1.05 : 1.0)
                         .shadow(
                             color: focusedField == .signIn ? 
-                                Color.Seerr.purple.opacity(0.5) : 
+                                Color.Seerr.indigo.opacity(0.5) : 
                                 Color.clear,
                             radius: 20,
                             x: 0,
                             y: 10
                         )
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.borderless)
                     .focused($focusedField, equals: .signIn)
                     .padding(.top, 8)
                     .disabled(isLoading)

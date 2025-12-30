@@ -51,8 +51,12 @@ final class DeletionRequestsViewModel: ObservableObject {
 
     // MARK: - Initialization
 
-    init(seerrService: SeerrService = .shared) {
-        self.seerrService = seerrService
+    init(seerrService: SeerrService? = nil) {
+        if let seerrService = seerrService {
+            self.seerrService = seerrService
+        } else {
+            self.seerrService = SeerrService.shared
+        }
     }
 
     // MARK: - Public Methods

@@ -18,7 +18,7 @@ struct RequestsView: View {
     // MARK: - Body
     var body: some View {
         contentView
-            .background(Color.black)
+            .background(Color.Seerr.background)
             .navigationBarHidden(true)
             .toast($toast)
     }
@@ -118,7 +118,7 @@ struct RequestsView: View {
             } label: {
                 requestCard(for: request)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
             .focused($focusedRequest, equals: request.id)
 
             // Load more trigger

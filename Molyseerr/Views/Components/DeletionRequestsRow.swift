@@ -20,40 +20,37 @@ struct DeletionRequestsRow: View {
     // MARK: - Body
 
     var body: some View {
-        Group {
-            // Only show if there are voting requests or still loading
-            if viewModel.isVotingLoading || !viewModel.votingRequests.isEmpty {
-                VStack(alignment: .leading, spacing: 16) {
-                    // Section header
-                    HStack {
-                        Text("Voting Now - Leaving Soon")
-                            .font(.title2)
-                            .fontWeight(.semibold)
+        VStack(alignment: .leading, spacing: 16) {
+            // Section header
+            HStack {
+                Text("Voting Now - Leaving Soon")
+                    .font(.title2)
+                    .fontWeight(.semibold)
 
-                        Spacer()
+                Spacer()
 
-                        // "View All" button (only show if there are requests)
-                        if !viewModel.votingRequests.isEmpty {
-                            NavigationLink(destination: DeletionRequestsListView()) {
-                                HStack(spacing: 8) {
-                                    Text("View All")
-                                    Image(systemName: "chevron.right")
-                                }
-                                .font(.body)
-                                .foregroundColor(.white.opacity(0.8))
-                            }
-                            .buttonStyle(.plain)
+                // "View All" button (only show if there are requests)
+                if !viewModel.votingRequests.isEmpty {
+                    NavigationLink(destination: DeletionRequestsListView()) {
+                        HStack(spacing: 8) {
+                            Text("View All")
+                            Image(systemName: "chevron.right")
                         }
+                        .font(.body)
+                        .foregroundColor(.white.opacity(0.8))
                     }
-                    .padding(.horizontal, 90)
-
-                    // Horizontal scroll view
-                    if viewModel.isVotingLoading {
-                        loadingView
-                    } else {
-                        scrollView
-                    }
+                    .buttonStyle(.borderless)
                 }
+            }
+            .padding(.horizontal, 90)
+
+            // Content area
+            if viewModel.isVotingLoading {
+                loadingView
+            } else if viewModel.votingRequests.isEmpty {
+                emptyView
+            } else {
+                scrollView
             }
         }
         .task {
@@ -101,5 +98,26 @@ struct DeletionRequestsRow: View {
             .padding(.horizontal, 90)
             .padding(.vertical, 20)
         }
+    }
+
+    /// Empty state when no deletion requests
+    private var emptyView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "checkmark.circle")
+                .font(.system(size: 60))
+                .foregroundColor(.green)
+
+            Text("No Deletion Requests")
+                .font(.title2)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+
+            Text("There are no items up for deletion at the moment.")
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 60)
     }
 }

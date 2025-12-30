@@ -30,11 +30,13 @@ final class MediaDetailViewModel: ObservableObject {
     // MARK: - Dependencies
 
     private let seerrService: SeerrService
+    private let tmdbService: TMDBService
 
     // MARK: - Initialization
 
-    init(seerrService: SeerrService = .shared) {
-        self.seerrService = seerrService
+    nonisolated init(seerrService: SeerrService? = nil, tmdbService: TMDBService? = nil) {
+        self.seerrService = seerrService ?? SeerrService.shared
+        self.tmdbService = tmdbService ?? TMDBService.shared
     }
 
     // MARK: - Public Methods
@@ -52,12 +54,95 @@ final class MediaDetailViewModel: ObservableObject {
         do {
             switch mediaType {
             case .movie:
-                movieDetails = try await seerrService.getMovieDetails(id: id)
+                // Load from both Seerr (for full details + mediaInfo) and TMDB (for images if missing)
+                async let seerrData = try seerrService.getMovieDetails(id: id)
+                async let tmdbData = try? tmdbService.getMovieDetails(id: id)
+
+                var details = try await seerrData
+                let tmdb = await tmdbData
+
+                // If Seerr didn't return images or rating, use TMDB's as fallback
+                if details.backdropPath == nil || details.posterPath == nil || details.voteAverage == nil {
+                    details = MovieDetails(
+                        id: details.id,
+                        imdbId: details.imdbId,
+                        adult: details.adult,
+                        backdropPath: details.backdropPath ?? tmdb?.backdropPath,
+                        posterPath: details.posterPath ?? tmdb?.posterPath,
+                        budget: details.budget,
+                        genres: details.genres,
+                        homepage: details.homepage,
+                        relatedVideos: details.relatedVideos,
+                        originalLanguage: details.originalLanguage,
+                        originalTitle: details.originalTitle,
+                        overview: details.overview,
+                        popularity: details.popularity,
+                        productionCompanies: details.productionCompanies,
+                        releaseDate: details.releaseDate,
+                        revenue: details.revenue,
+                        runtime: details.runtime,
+                        status: details.status,
+                        tagline: details.tagline,
+                        title: details.title,
+                        video: details.video,
+                        voteAverage: details.voteAverage ?? tmdb?.voteAverage,
+                        voteCount: details.voteCount ?? tmdb?.voteCount,
+                        credits: details.credits,
+                        mediaInfo: details.mediaInfo
+                    )
+                }
+
+                movieDetails = details
             case .tv:
-                tvDetails = try await seerrService.getTVDetails(id: id)
+                // Load from both Seerr (for full details + mediaInfo) and TMDB (for images if missing)
+                async let seerrData = try seerrService.getTVDetails(id: id)
+                async let tmdbData = try? tmdbService.getTVDetails(id: id)
+
+                var details = try await seerrData
+                let tmdb = await tmdbData
+
+                // If Seerr didn't return images or rating, use TMDB's as fallback
+                if details.backdropPath == nil || details.posterPath == nil || details.voteAverage == nil {
+                    details = TVDetails(
+                        id: details.id,
+                        backdropPath: details.backdropPath ?? tmdb?.backdropPath,
+                        posterPath: details.posterPath ?? tmdb?.posterPath,
+                        createdBy: details.createdBy,
+                        episodeRunTime: details.episodeRunTime,
+                        firstAirDate: details.firstAirDate,
+                        genres: details.genres,
+                        homepage: details.homepage,
+                        inProduction: details.inProduction,
+                        languages: details.languages,
+                        lastAirDate: details.lastAirDate,
+                        lastEpisodeToAir: details.lastEpisodeToAir,
+                        name: details.name,
+                        nextEpisodeToAir: details.nextEpisodeToAir,
+                        networks: details.networks,
+                        numberOfEpisodes: details.numberOfEpisodes,
+                        numberOfSeasons: details.numberOfSeasons,
+                        originCountry: details.originCountry,
+                        originalLanguage: details.originalLanguage,
+                        originalName: details.originalName,
+                        overview: details.overview,
+                        popularity: details.popularity,
+                        productionCompanies: details.productionCompanies,
+                        seasons: details.seasons,
+                        status: details.status,
+                        tagline: details.tagline,
+                        type: details.type,
+                        voteAverage: details.voteAverage ?? tmdb?.voteAverage,
+                        voteCount: details.voteCount ?? tmdb?.voteCount,
+                        credits: details.credits,
+                        mediaInfo: details.mediaInfo
+                    )
+                }
+
+                tvDetails = details
             }
         } catch {
             errorMessage = error.localizedDescription
+            print("❌ MediaDetailViewModel error: \(error)")
         }
 
         isLoading = false

@@ -32,7 +32,7 @@ struct RequestDiscoverCard: View {
     private var cardContent: some View {
         ZStack(alignment: .bottomLeading) {
             // Background with backdrop image (or poster as fallback)
-            if let media = request.media {
+            if request.media != nil {
                 // Use the fetched backdropPath from TMDB API
                 let fetchedBackdropPath = backdropPath
                 let fallbackPosterPath = posterPath

@@ -249,7 +249,7 @@ struct DeletionRequestCard: View {
                 .foregroundColor(.white)
                 .cornerRadius(8)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
             .disabled(isProcessing)
 
             // Remove button
@@ -270,7 +270,7 @@ struct DeletionRequestCard: View {
                 .foregroundColor(.white)
                 .cornerRadius(8)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
             .disabled(isProcessing)
 
             // Remove vote button (if user has voted)
@@ -289,7 +289,7 @@ struct DeletionRequestCard: View {
                         .foregroundColor(.white.opacity(0.6))
                         .cornerRadius(8)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.borderless)
                 .disabled(isProcessing)
             }
         }
@@ -314,7 +314,7 @@ struct DeletionRequestCard: View {
             .foregroundColor(.white)
             .cornerRadius(8)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.borderless)
         .disabled(isProcessing)
     }
 
@@ -337,7 +337,7 @@ struct DeletionRequestCard: View {
             .foregroundColor(.white)
             .cornerRadius(8)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.borderless)
         .disabled(isProcessing)
     }
 

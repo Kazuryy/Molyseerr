@@ -19,7 +19,7 @@ struct PrimaryButtonStyle: PrimitiveButtonStyle {
     @FocusState
     private var isFocused: Bool
 
-    init(backgroundColor: Color = Color.Seerr.purple) {
+    init(backgroundColor: Color = Color.Seerr.indigo) {
         self.backgroundColor = backgroundColor
     }
 

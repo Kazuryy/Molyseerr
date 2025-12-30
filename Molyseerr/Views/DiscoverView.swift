@@ -20,21 +20,25 @@ struct DiscoverView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Color.Seerr.background.ignoresSafeArea()
 
                 Group {
                     if viewModel.isLoading && viewModel.allSliders.isEmpty {
                         // Initial loading state
                         loadingView
+                            .onAppear { print("📍 DiscoverView: Showing LOADING view") }
                     } else if let errorMessage = viewModel.errorMessage {
                         // Error state
                         errorView(message: errorMessage)
+                            .onAppear { print("📍 DiscoverView: Showing ERROR view - \(errorMessage)") }
                     } else if viewModel.enabledSliders.isEmpty {
                         // Empty state (no enabled sliders)
                         emptyView
+                            .onAppear { print("📍 DiscoverView: Showing EMPTY view - enabledSliders count: \(viewModel.enabledSliders.count)") }
                     } else {
                         // Display enabled sliders
                         sliderList
+                            .onAppear { print("📍 DiscoverView: Showing SLIDER LIST with \(viewModel.enabledSliders.count) sliders") }
                     }
                 }
             }
@@ -92,11 +96,11 @@ struct DiscoverView: View {
                 Label("Retry", systemImage: "arrow.clockwise")
                     .font(.headline)
                     .padding()
-                    .background(Color.Seerr.purple)
+                    .background(Color.Seerr.indigo)
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
         }
         .padding()
     }
@@ -123,46 +127,16 @@ struct DiscoverView: View {
 
     /// Dynamic slider list
     private var sliderList: some View {
-        VStack(spacing: 0) {
-            // Header with Requests button
-            HStack {
-                Text("Discover")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-
-                Spacer()
-
-                // Requests button
-                NavigationLink {
-                    RequestsView()
-                } label: {
-                    Label("Requests", systemImage: "tray.full.fill")
-                        .font(.headline)
-                        .foregroundColor(.black)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                        .background(Color.white)
-                        .cornerRadius(8)
-                }
-                .buttonStyle(.plain)
-            }
-            .padding(.horizontal, 48)
-            .padding(.vertical, 24)
-
-            // Sliders list
-            List {
+        ScrollView {
+            LazyVStack(spacing: 0) {
                 ForEach(viewModel.enabledSliders) { slider in
                     DiscoverSliderRow(
                         slider: slider,
                         selectedStudio: $selectedStudio,
                         selectedNetwork: $selectedNetwork
                     )
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
                 }
             }
-            .listStyle(.plain)
         }
     }
 }
@@ -189,76 +163,28 @@ struct DiscoverSliderRow: View {
 
     var body: some View {
         Group {
-            if isLoading {
-                // Loading state for this slider
-                VStack(alignment: .leading, spacing: 20) {
-                    Text(slider.displayTitle)
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .padding(.leading, 48)
-
-                    HStack {
-                        ProgressView()
-                            .tint(.white)
-                        Text("Loading...")
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-                    }
-                    .padding(.leading, 48)
+            if slider.type == .deletionRequests {
+                // Only show deletion requests if there are any
+                if showDeletionRequests {
+                    DeletionRequestsRow()
                 }
-            } else if let error = error {
-                // Error state for this slider
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(slider.displayTitle)
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .padding(.leading, 48)
-
-                    Label(error, systemImage: "exclamationmark.triangle.fill")
-                        .foregroundColor(.red)
-                        .font(.caption)
-                        .padding(.leading, 48)
+            } else if slider.type == .todaysReleases {
+                // Only show today's releases if there are any
+                if !calendarItems.isEmpty {
+                    TodayReleasesRow(title: slider.displayTitle, items: calendarItems)
                 }
-            } else if showDeletionRequests {
-                // Display Deletion Requests with custom row
-                DeletionRequestsRow()
             } else if showRecentRequests {
-                // Display Recent Requests with custom row
                 RecentRequestsRow()
             } else if showMovieGenres {
-                // Display Movie Genres with custom row
                 MovieGenresRow(title: slider.displayTitle)
             } else if showTVGenres {
-                // Display TV Genres with custom row
                 TVGenresRow(title: slider.displayTitle)
             } else if showStudios {
-                // Display Studios with custom row
                 StudiosRow(slider: slider, selectedStudio: $selectedStudio)
             } else if showNetworks {
-                // Display Networks with custom row
                 NetworksRow(slider: slider, selectedNetwork: $selectedNetwork)
-            } else if !calendarItems.isEmpty {
-                // Display Today's Releases with custom cards
-                TodayReleasesRow(title: slider.displayTitle, items: calendarItems)
-            } else if !items.isEmpty {
-                // Display standard slider with content
-                HorizontalMediaRow(title: slider.displayTitle, items: items)
             } else {
-                // DEBUG: Show empty sliders for debugging
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(slider.displayTitle)
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .padding(.leading, 48)
-
-                    Text("Empty (0 items)")
-                        .foregroundColor(.orange)
-                        .font(.caption)
-                        .padding(.leading, 48)
-                }
+                HorizontalMediaRow(title: slider.displayTitle, items: items)
             }
         }
         .onAppear {
@@ -270,7 +196,9 @@ struct DiscoverSliderRow: View {
 
     /// Load content for this specific slider type
     private func loadSliderContent() async {
-        guard !isLoading, !hasLoaded else { return }
+        guard !isLoading, !hasLoaded else {
+            return
+        }
 
         hasLoaded = true
         isLoading = true
