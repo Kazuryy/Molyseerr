@@ -7,6 +7,16 @@
 
 import Foundation
 
+/// User settings model
+/// Source: seerr-api.yml UserSettings schema
+struct UserSettings: Codable {
+    let locale: String?
+    let region: String?
+    let originalLanguage: String?
+    let discoverRegion: String?
+    let streamingRegion: String?
+}
+
 /// User model
 /// Source: seerr-api.yml User schema
 struct User: Codable, Identifiable {
@@ -20,9 +30,15 @@ struct User: Codable, Identifiable {
     let createdAt: String
     let updatedAt: String
     let requestCount: Int?
+    let settings: UserSettings?
 
     /// Display name computed property - uses username, jellyfinUsername, or email as fallback
     var displayName: String {
         username ?? jellyfinUsername ?? email ?? "User \(id)"
+    }
+
+    /// Get user's preferred locale, defaults to "en"
+    var preferredLocale: String {
+        settings?.locale ?? "en"
     }
 }
