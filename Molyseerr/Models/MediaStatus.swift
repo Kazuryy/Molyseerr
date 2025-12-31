@@ -9,7 +9,7 @@ import Foundation
 
 /// Media availability status
 /// Source: server/constants/media.ts & TVOS_ARCH_SPEC.md Section 2.1
-enum MediaStatus: Int, Codable {
+enum MediaStatus: Int, Codable, Hashable {
     case unknown = 1
     case pending = 2
     case processing = 3
@@ -27,7 +27,7 @@ enum MediaType: String, Codable {
 
 /// Request status
 /// Source: server/constants/media.ts MediaRequestStatus
-enum RequestStatus: Int, Codable {
+enum RequestStatus: Int, Codable, Hashable {
     case pending = 1
     case approved = 2
     case declined = 3

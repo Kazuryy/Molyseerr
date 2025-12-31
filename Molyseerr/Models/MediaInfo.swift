@@ -10,7 +10,7 @@ import Foundation
 /// Media entity from Seerr database
 /// Source: seerr-api.yml MediaInfo schema & TVOS_ARCH_SPEC.md Section 3.6
 /// CRITICAL: Contains status, requests, and metadata needed for button logic
-struct MediaInfo: Codable, Identifiable {
+struct MediaInfo: Codable, Identifiable, Hashable {
     let id: Int
     let tmdbId: Int
     let tvdbId: Int?
