@@ -15,7 +15,7 @@ struct HorizontalMediaRow: View {
 
     // MARK: - Constants
     private let cardSpacing: CGFloat = 40
-    private let horizontalPadding: CGFloat = 48  // Seerr style padding
+    private let horizontalPadding: CGFloat = 60  // Balanced for sidebar layout
     private let verticalPadding: CGFloat = 40  // Space for focus scale (10% of 375px card)
 
     var body: some View {
