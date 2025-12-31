@@ -23,10 +23,13 @@ struct CinematicHeaderView: View {
     let voteAverage: Double?
     let mediaInfo: MediaInfo?
     let mediaType: MediaType
+    let tmdbId: Int
 
     var onRequest: () -> Void
     var onPlayTrailer: (() -> Void)?
     var onToggleWatchlist: (() -> Void)?
+
+    @StateObject private var watchlistManager = WatchlistManager.shared
 
     // Constants
     private let backdropHeight: CGFloat = 900
@@ -255,7 +258,10 @@ struct CinematicHeaderView: View {
                 Button {
                     onToggleWatchlist()
                 } label: {
-                    Label("My List", systemImage: "plus")
+                    Image(systemName: watchlistManager.isInWatchlist(tmdbId) ? "star.fill" : "star")
+                        .font(.system(size: 30, weight: .semibold))
+                        .foregroundColor(watchlistManager.isInWatchlist(tmdbId) ? .yellow : .white)
+                        .frame(width: 60, height: 60)
                 }
                 .buttonStyle(.actionSecondary)
             }

@@ -17,6 +17,7 @@ struct MovieDetailView: View {
     @FocusState private var focusedCastID: Int?
     @FocusState private var isCrewFocused: Bool
     @FocusState private var isInfoFocused: Bool
+    @StateObject private var watchlistManager = WatchlistManager.shared
 
     private let horizontalPadding: CGFloat = 90
     private let sectionSpacing: CGFloat = 60
@@ -38,6 +39,7 @@ struct MovieDetailView: View {
                     voteAverage: movieDetails.voteAverage,
                     mediaInfo: movieDetails.mediaInfo,
                     mediaType: .movie,
+                    tmdbId: movieDetails.id,
                     onRequest: {
                         showingRequestSheet = true
                     },
@@ -46,8 +48,9 @@ struct MovieDetailView: View {
                         print("Play trailer")
                     } : nil,
                     onToggleWatchlist: {
-                        // TODO: Toggle watchlist
-                        print("Toggle watchlist")
+                        Task {
+                            await toggleWatchlist()
+                        }
                     }
                 )
 
@@ -468,6 +471,21 @@ struct MovieDetailView: View {
         formatter.currencyCode = "USD"
         formatter.maximumFractionDigits = 0
         return formatter.string(from: NSNumber(value: amount)) ?? "$\(amount)"
+    }
+
+    private func toggleWatchlist() async {
+        let isAdded = await watchlistManager.toggleWatchlist(
+            tmdbId: movieDetails.id,
+            mediaType: .movie,
+            title: movieDetails.title
+        )
+
+        // Show toast notification
+        if let successMessage = watchlistManager.successMessage {
+            toast = ToastConfig(message: successMessage, type: .success)
+        } else if let errorMessage = watchlistManager.errorMessage {
+            toast = ToastConfig(message: errorMessage, type: .error)
+        }
     }
 }
 

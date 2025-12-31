@@ -130,6 +130,51 @@ final class SeerrService: ObservableObject {
         }
     }
 
+    /// Perform network request without expecting a response body (for DELETE, etc.)
+    private func performRequestWithoutResponse(
+        path: String,
+        queryItems: [URLQueryItem]? = nil,
+        method: String = "DELETE",
+        body: Data? = nil
+    ) async throws {
+        // Build URL
+        guard let url = buildURL(path: path, queryItems: queryItems) else {
+            throw SeerrError.invalidURL
+        }
+
+        // Create request
+        var request = createRequest(url: url, method: method)
+        if let body = body {
+            request.httpBody = body
+        }
+
+        // Perform request
+        let (data, response) = try await session.data(for: request)
+
+        // Validate HTTP response
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw SeerrError.invalidResponse
+        }
+
+        // Handle HTTP errors
+        switch httpResponse.statusCode {
+        case 200...299:
+            // Success - no need to decode anything
+            return
+        case 401:
+            throw SeerrError.unauthorized
+        case 403:
+            throw SeerrError.forbidden
+        case 404:
+            throw SeerrError.notFound
+        case 500...599:
+            throw SeerrError.serverError
+        default:
+            let message = String(data: data, encoding: .utf8)
+            throw SeerrError.httpError(statusCode: httpResponse.statusCode, message: message)
+        }
+    }
+
     /// Perform network request with camelCase decoding (for /available endpoints)
     private func performRequestCamelCase<T: Decodable>(
         path: String,
@@ -769,6 +814,40 @@ final class SeerrService: ObservableObject {
 
         let response: PaginatedResponse<WatchlistItem> = try await performRequest(path: "/discover/watchlist", queryItems: queryItems)
         return response.results
+    }
+
+    /// Add media to watchlist
+    /// Source: seerr webapp - POST /api/v1/watchlist
+    /// - Parameters:
+    ///   - tmdbId: TMDB ID of the media
+    ///   - mediaType: Type of media ("movie" or "tv")
+    ///   - title: Optional title of the media
+    /// - Returns: Created watchlist item
+    func addToWatchlist(tmdbId: Int, mediaType: MediaType, title: String? = nil) async throws -> WatchlistItem {
+        let bodyDict: [String: Any] = [
+            "tmdbId": tmdbId,
+            "mediaType": mediaType.rawValue,
+            "title": title ?? ""
+        ]
+
+        let bodyData = try JSONSerialization.data(withJSONObject: bodyDict)
+
+        let response: WatchlistItem = try await performRequest(
+            path: "/watchlist",
+            method: "POST",
+            body: bodyData
+        )
+        return response
+    }
+
+    /// Remove media from watchlist
+    /// Source: seerr webapp - DELETE /api/v1/watchlist/:tmdbId
+    /// - Parameter tmdbId: TMDB ID of the media to remove
+    func removeFromWatchlist(tmdbId: Int) async throws {
+        try await performRequestWithoutResponse(
+            path: "/watchlist/\(tmdbId)",
+            method: "DELETE"
+        )
     }
 
     // MARK: - Available Media

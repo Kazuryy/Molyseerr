@@ -18,6 +18,7 @@ struct SeriesDetailView: View {
     @FocusState private var focusedCastID: Int?
     @FocusState private var isCrewFocused: Bool
     @FocusState private var isInfoFocused: Bool
+    @StateObject private var watchlistManager = WatchlistManager.shared
 
     private let horizontalPadding: CGFloat = 90
     private let sectionSpacing: CGFloat = 60
@@ -39,6 +40,7 @@ struct SeriesDetailView: View {
                     voteAverage: tvDetails.voteAverage,
                     mediaInfo: tvDetails.mediaInfo,
                     mediaType: .tv,
+                    tmdbId: tvDetails.id,
                     onRequest: {
                         showingRequestSheet = true
                     },
@@ -47,8 +49,9 @@ struct SeriesDetailView: View {
                         print("Play trailer")
                     } : nil,
                     onToggleWatchlist: {
-                        // TODO: Toggle watchlist
-                        print("Toggle watchlist")
+                        Task {
+                            await toggleWatchlist()
+                        }
                     }
                 )
 
@@ -486,6 +489,23 @@ struct SeriesDetailView: View {
         }
 
         return items
+    }
+
+    // MARK: - Helpers
+
+    private func toggleWatchlist() async {
+        let isAdded = await watchlistManager.toggleWatchlist(
+            tmdbId: tvDetails.id,
+            mediaType: .tv,
+            title: tvDetails.name
+        )
+
+        // Show toast notification
+        if let successMessage = watchlistManager.successMessage {
+            toast = ToastConfig(message: successMessage, type: .success)
+        } else if let errorMessage = watchlistManager.errorMessage {
+            toast = ToastConfig(message: errorMessage, type: .error)
+        }
     }
 }
 

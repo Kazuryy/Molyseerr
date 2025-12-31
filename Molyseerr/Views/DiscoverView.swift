@@ -11,6 +11,7 @@ import SwiftUI
 /// Fetches slider configuration from server and displays enabled sliders in order
 struct DiscoverView: View {
     @StateObject private var viewModel = DiscoverViewModel()
+    @StateObject private var watchlistManager = WatchlistManager.shared
     @EnvironmentObject var configManager: ConfigManager
 
     // Navigation states for studios and networks
@@ -51,6 +52,14 @@ struct DiscoverView: View {
             .task {
                 // Load slider configuration when view appears
                 await viewModel.fetchSliders()
+            }
+            .onAppear {
+                // Refresh watchlist when returning to Discover
+                Task {
+                    await watchlistManager.loadWatchlist()
+                    // Force refresh of sliders to reflect watchlist changes
+                    await viewModel.fetchSliders(refresh: true)
+                }
             }
         }
     }

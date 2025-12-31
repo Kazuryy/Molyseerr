@@ -20,6 +20,7 @@ struct MolyseerrApp: App {
 
 struct RootView: View {
     @StateObject private var configManager = ConfigManager()
+    @StateObject private var watchlistManager = WatchlistManager.shared
     @State private var isValidatingSession = true
 
     var body: some View {
@@ -64,6 +65,11 @@ struct RootView: View {
             // Validate session on app startup (like Seerr web app does)
             await configManager.validateSession()
             isValidatingSession = false
+
+            // Load watchlist after authentication
+            if configManager.isAuthenticated {
+                await watchlistManager.loadWatchlist()
+            }
         }
     }
 }
