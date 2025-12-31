@@ -9,7 +9,7 @@ import Foundation
 
 /// Media request entity
 /// Source: seerr-api.yml MediaRequest schema
-struct MediaRequest: Codable, Identifiable {
+struct MediaRequest: Codable, Identifiable, Hashable {
     let id: Int
     let status: RequestStatus
     let media: MediaInfo?

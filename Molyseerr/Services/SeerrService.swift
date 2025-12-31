@@ -261,29 +261,46 @@ final class SeerrService: ObservableObject {
             URLQueryItem(name: "page", value: String(page))
         ]
 
-        // First get the raw response to handle mixed movie/TV results
-        let response: PaginatedResponse<MovieResult> = try await performRequest(
-            path: "/discover/trending",
-            queryItems: queryItems
-        )
-
-        // Transform to MediaResult
-        let mediaResults = response.results.map { movie -> MediaResult in
-            // Check if it's actually a TV show based on mediaType field
-            if movie.mediaType == "tv" {
-                // This needs special handling - for now return as movie
-                // In production, you'd decode as TVResult
-                return .movie(movie)
-            }
-            return .movie(movie)
+        // Build URL
+        guard let url = buildURL(path: "/discover/trending", queryItems: queryItems) else {
+            throw SeerrError.invalidURL
         }
 
-        return PaginatedResponse(
-            page: response.page,
-            totalPages: response.totalPages,
-            totalResults: response.totalResults,
-            results: mediaResults
-        )
+        // Create request
+        let request = createRequest(url: url, method: "GET")
+
+        // Perform request
+        let (data, response) = try await session.data(for: request)
+
+        // Validate HTTP response
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw SeerrError.invalidResponse
+        }
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            throw SeerrError.httpError(statusCode: httpResponse.statusCode, message: nil)
+        }
+
+        // Debug: Print first result's JSON structure
+        if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let results = json["results"] as? [[String: Any]],
+           let firstResult = results.first {
+            print("🔍 First trending item JSON keys: \(firstResult.keys.sorted())")
+            if let mediaType = firstResult["media_type"] as? String {
+                print("🔍 media_type value: \(mediaType)")
+            } else if let mediaType = firstResult["mediaType"] as? String {
+                print("🔍 mediaType value: \(mediaType)")
+            } else {
+                print("🔍 NO media_type field found in JSON!")
+            }
+        }
+
+        // Decode as MediaResult - the custom decoder will handle movie/TV discrimination
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let paginatedResponse = try decoder.decode(PaginatedResponse<MediaResult>.self, from: data)
+
+        return paginatedResponse
     }
 
     /// Discover movies

@@ -258,10 +258,12 @@ struct CinematicHeaderView: View {
                 Button {
                     onToggleWatchlist()
                 } label: {
-                    Image(systemName: watchlistManager.isInWatchlist(tmdbId) ? "star.fill" : "star")
-                        .font(.system(size: 30, weight: .semibold))
-                        .foregroundColor(watchlistManager.isInWatchlist(tmdbId) ? .yellow : .white)
-                        .frame(width: 60, height: 60)
+                    Label("Watchlist", systemImage: watchlistManager.isInWatchlist(tmdbId) ? "star.fill" : "star")
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(
+                            watchlistManager.isInWatchlist(tmdbId) ? .yellow : .white,
+                            .white
+                        )
                 }
                 .buttonStyle(.actionSecondary)
             }

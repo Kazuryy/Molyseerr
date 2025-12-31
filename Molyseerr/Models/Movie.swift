@@ -60,7 +60,7 @@ struct RelatedVideo: Codable, Identifiable {
 
 /// Movie search result (from Discover/Trending)
 /// Source: seerr-api.yml MovieResult schema
-struct MovieResult: Codable, Identifiable {
+struct MovieResult: Codable, Identifiable, Hashable {
     let id: Int  // TMDB ID
     let adult: Bool?
     let backdropPath: String?

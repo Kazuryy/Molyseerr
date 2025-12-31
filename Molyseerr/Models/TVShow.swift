@@ -50,7 +50,7 @@ struct Season: Codable, Identifiable {
 
 /// TV show search result (from Discover/Trending)
 /// Source: seerr-api.yml TvResult schema
-struct TVResult: Codable, Identifiable {
+struct TVResult: Codable, Identifiable, Hashable {
     let id: Int  // TMDB ID
     let backdropPath: String?
     let posterPath: String?
