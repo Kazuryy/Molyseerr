@@ -17,7 +17,7 @@ struct PaginatedResponse<T: Codable>: Codable {
 }
 
 /// Media search result (union type for movies and TV)
-enum MediaResult: Codable, Identifiable {
+enum MediaResult: Codable, Identifiable, Hashable {
     case movie(MovieResult)
     case tv(TVResult)
 
@@ -86,26 +86,52 @@ enum MediaResult: Codable, Identifiable {
 
     // Custom Codable implementation to handle dynamic decoding
     init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
+        // Peek at the media_type field to determine which type to decode
+        let container = try decoder.container(keyedBy: CodingKeys.self)
 
-        // Try to decode as MovieResult first
-        if let movie = try? container.decode(MovieResult.self) {
-            // Check mediaType field if present
-            if let mediaType = movie.mediaType, mediaType == "tv" {
-                // This is actually a TV show, try decoding as TVResult
-                let tv = try container.decode(TVResult.self)
+        if let mediaTypeString = try? container.decode(String.self, forKey: .mediaType) {
+            print("🔍 MediaResult decoding - found media_type: \(mediaTypeString)")
+
+            // Now decode the full object based on media_type
+            let singleValueContainer = try decoder.singleValueContainer()
+
+            if mediaTypeString == "tv" {
+                let tv = try singleValueContainer.decode(TVResult.self)
+                print("✅ Decoded as TV: \(tv.name)")
+                self = .tv(tv)
+            } else if mediaTypeString == "movie" {
+                let movie = try singleValueContainer.decode(MovieResult.self)
+                print("✅ Decoded as Movie: \(movie.displayTitle)")
+                self = .movie(movie)
+            } else {
+                throw DecodingError.dataCorruptedError(
+                    forKey: .mediaType,
+                    in: container,
+                    debugDescription: "Unknown media_type: \(mediaTypeString)"
+                )
+            }
+        } else {
+            // Fallback: No media_type field, try to decode as MovieResult then TVResult
+            print("⚠️ MediaResult decoding - NO media_type field found, using fallback")
+            let singleValueContainer = try decoder.singleValueContainer()
+
+            if let movie = try? singleValueContainer.decode(MovieResult.self) {
+                print("🔄 Fallback: Decoded as Movie: \(movie.displayTitle)")
+                self = .movie(movie)
+            } else if let tv = try? singleValueContainer.decode(TVResult.self) {
+                print("🔄 Fallback: Decoded as TV: \(tv.name)")
                 self = .tv(tv)
             } else {
-                self = .movie(movie)
+                throw DecodingError.dataCorruptedError(
+                    in: singleValueContainer,
+                    debugDescription: "Cannot decode MediaResult - neither MovieResult nor TVResult"
+                )
             }
-        } else if let tv = try? container.decode(TVResult.self) {
-            self = .tv(tv)
-        } else {
-            throw DecodingError.dataCorruptedError(
-                in: container,
-                debugDescription: "Cannot decode MediaResult"
-            )
         }
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case mediaType  // No need for = "media_type" since JSONDecoder already converted it
     }
 
     func encode(to encoder: Encoder) throws {
