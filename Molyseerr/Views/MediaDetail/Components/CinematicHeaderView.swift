@@ -160,8 +160,8 @@ struct CinematicHeaderView: View {
 
     private var metadataRow: some View {
         HStack(spacing: 16) {
-            // Status badge
-            if let mediaInfo = mediaInfo {
+            // Status badge - hide if unknown (media never requested)
+            if let mediaInfo = mediaInfo, mediaInfo.status != .unknown {
                 HeaderStatusBadge(status: mediaInfo.status)
             }
 
