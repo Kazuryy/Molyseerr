@@ -1036,6 +1036,57 @@ final class SeerrService: ObservableObject {
         return try await performRequest(path: "/auth/me")
     }
 
+    /// Get user settings for a specific user
+    /// Source: seerr-api.yml /user/:id/settings/main endpoint
+    /// - Parameter userId: User ID (use current user's ID)
+    /// - Returns: User settings
+    func getUserSettings(userId: Int) async throws -> UserSettings {
+        return try await performRequest(path: "/user/\(userId)/settings/main")
+    }
+
+    /// Update user settings
+    /// Source: seerr-api.yml /user/:id/settings/main endpoint (POST)
+    /// - Parameters:
+    ///   - userId: User ID (use current user's ID)
+    ///   - settings: Settings to update
+    /// - Returns: Updated user settings
+    func updateUserSettings(userId: Int, settings: UserSettingsUpdate) async throws -> UserSettings {
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        let bodyData = try encoder.encode(settings)
+
+        return try await performRequest(
+            path: "/user/\(userId)/settings/main",
+            method: "POST",
+            body: bodyData
+        )
+    }
+
+    /// Update user profile (display name, email)
+    /// Source: seerr-api.yml /user/:id endpoint (PUT)
+    /// - Parameters:
+    ///   - userId: User ID
+    ///   - displayName: New display name
+    ///   - email: New email (optional)
+    /// - Returns: Updated user
+    func updateUserProfile(userId: Int, displayName: String, email: String? = nil) async throws -> User {
+        var bodyDict: [String: Any] = [
+            "username": displayName
+        ]
+
+        if let email = email {
+            bodyDict["email"] = email
+        }
+
+        let bodyData = try JSONSerialization.data(withJSONObject: bodyDict)
+
+        return try await performRequest(
+            path: "/user/\(userId)",
+            method: "PUT",
+            body: bodyData
+        )
+    }
+
     /// Get Seerr server status (public endpoint, no auth required)
     /// Source: seerr-api.yml /status endpoint
     /// - Returns: Server status information

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 /// Direct TMDB API service
 /// Uses the same hardcoded API key as Seerr (from server/api/themoviedb/index.ts:138)
