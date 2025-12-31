@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// Main sidebar navigation for tvOS app (Apple TV+ style)
-/// Features: Discover, Movies, TV Shows, Requests, and Settings
+/// Features: Discover, Movies, TV Shows, Requests, Search, and Settings
 struct MainTabView: View {
     @EnvironmentObject var configManager: ConfigManager
     @State private var selectedTab: TabItem = .discover
@@ -18,6 +18,7 @@ struct MainTabView: View {
         case movies
         case series
         case requests
+        case search
         case settings
     }
 
@@ -49,6 +50,13 @@ struct MainTabView: View {
                     Label("Requests", systemImage: "list.bullet")
                 }
                 .tag(TabItem.requests)
+                .environmentObject(configManager)
+
+            SearchView()
+                .tabItem {
+                    Label("Search", systemImage: "magnifyingglass")
+                }
+                .tag(TabItem.search)
                 .environmentObject(configManager)
 
             SettingsView()

@@ -738,19 +738,13 @@ final class SeerrService: ObservableObject {
             URLQueryItem(name: "page", value: String(page))
         ]
 
-        let response: PaginatedResponse<MovieResult> = try await performRequest(
+        // Decode directly as MediaResult - the custom decoder will detect movie vs tv
+        let response: PaginatedResponse<MediaResult> = try await performRequest(
             path: "/search",
             queryItems: queryItems
         )
 
-        let mediaResults = response.results.map { MediaResult.movie($0) }
-
-        return PaginatedResponse(
-            page: response.page,
-            totalPages: response.totalPages,
-            totalResults: response.totalResults,
-            results: mediaResults
-        )
+        return response
     }
 
     // MARK: - Media Lists
