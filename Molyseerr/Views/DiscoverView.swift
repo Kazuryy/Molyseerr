@@ -49,6 +49,9 @@ struct DiscoverView: View {
             .navigationDestination(item: $selectedNetwork) { network in
                 NetworkDetailView(network: network)
             }
+            .navigationDestination(for: MediaResult.self) { mediaResult in
+                MediaDetailView(mediaResult: mediaResult)
+            }
             .task {
                 // Load slider configuration when view appears
                 await viewModel.fetchSliders()
@@ -134,19 +137,70 @@ struct DiscoverView: View {
         .padding()
     }
 
-    /// Dynamic slider list
+    /// Dynamic slider list with hero banner
     private var sliderList: some View {
         ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(viewModel.enabledSliders) { slider in
-                    DiscoverSliderRow(
-                        slider: slider,
-                        selectedStudio: $selectedStudio,
-                        selectedNetwork: $selectedNetwork
-                    )
+            VStack(spacing: 0) {
+                // Hero Banner (using TMDB trending API) - fullscreen edge-to-edge
+                HeroBannerRow()
+                    .ignoresSafeArea(edges: [.top, .leading, .trailing])
+
+                // Regular slider rows - Lazy to improve performance
+                LazyVStack(spacing: 0) {
+                    ForEach(viewModel.enabledSliders) { slider in
+                        DiscoverSliderRow(
+                            slider: slider,
+                            selectedStudio: $selectedStudio,
+                            selectedNetwork: $selectedNetwork
+                        )
+                    }
                 }
             }
         }
+        .ignoresSafeArea(edges: [.top, .leading, .trailing])
+    }
+}
+
+/// Hero banner row that fetches content for the banner
+struct HeroBannerRow: View {
+    @State private var items: [MediaResult] = []
+    @State private var isLoading = true
+
+    var body: some View {
+        Group {
+            if !items.isEmpty {
+                HeroBanner(items: items)
+            } else if isLoading {
+                ProgressView()
+                    .scaleEffect(2.0)
+                    .frame(height: 900)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .task {
+            await loadTrending()
+        }
+    }
+
+    private func loadTrending() async {
+        guard items.isEmpty else { return }
+
+        print("🎬 HeroBanner: Loading trending content...")
+
+        do {
+            let response = try await SeerrService.shared.getTrending(page: 1)
+            items = Array(response.results.prefix(10))  // Take first 10 items
+            print("🎬 HeroBanner: Loaded \(items.count) trending items")
+
+            // Debug: Print media types
+            for item in items {
+                print("📺 HeroBanner item: \(item.title) - type: \(item.mediaType)")
+            }
+        } catch {
+            print("❌ HeroBanner: Failed to load trending: \(error)")
+        }
+
+        isLoading = false
     }
 }
 
