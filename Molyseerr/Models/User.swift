@@ -73,4 +73,48 @@ struct User: Codable, Identifiable, Hashable {
     var preferredLocale: String {
         settings?.locale ?? "en"
     }
+
+    /// Formatted join date
+    var joinDate: String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+        if let date = formatter.date(from: createdAt) {
+            let displayFormatter = DateFormatter()
+            displayFormatter.dateStyle = .long
+            return displayFormatter.string(from: date)
+        }
+        return createdAt
+    }
+}
+
+/// Quota status for movie or TV requests
+/// Source: Seerr webapp QuotaStatus interface
+struct QuotaStatus: Codable, Hashable {
+    let days: Int?
+    let limit: Int?
+    let used: Int
+    let remaining: Int?
+    let restricted: Bool
+
+    var isUnlimited: Bool {
+        limit == nil || limit == 0
+    }
+
+    var quotaText: String {
+        if isUnlimited {
+            return "Unlimited"
+        }
+        guard let limit = limit, let remaining = remaining else {
+            return "N/A"
+        }
+        return "\(remaining) of \(limit)"
+    }
+}
+
+/// User quota response
+/// Source: Seerr API /user/:id/quota endpoint
+struct UserQuotaResponse: Codable, Hashable {
+    let movie: QuotaStatus
+    let tv: QuotaStatus
 }

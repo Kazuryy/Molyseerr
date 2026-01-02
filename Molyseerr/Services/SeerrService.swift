@@ -1036,6 +1036,27 @@ final class SeerrService: ObservableObject {
         return try await performRequest(path: "/auth/me")
     }
 
+    /// Get user quota information
+    /// Source: Seerr API /user/:id/quota endpoint (GET)
+    /// - Parameter userId: User ID
+    /// - Returns: User quota response with movie and TV quotas
+    func getUserQuota(userId: Int) async throws -> UserQuotaResponse {
+        return try await performRequest(path: "/user/\(userId)/quota")
+    }
+
+    /// Get user's watchlist
+    /// Source: seerr-api.yml /user/{userId}/watchlist endpoint
+    /// - Parameters:
+    ///   - userId: User ID
+    ///   - page: Page number (default: 1)
+    /// - Returns: Watchlist response with pagination
+    func getUserWatchlist(userId: Int, page: Int = 1) async throws -> WatchlistResponse {
+        let queryItems = [
+            URLQueryItem(name: "page", value: String(page))
+        ]
+        return try await performRequest(path: "/user/\(userId)/watchlist", queryItems: queryItems)
+    }
+
     /// Get user settings for a specific user
     /// Source: seerr-api.yml /user/:id/settings/main endpoint
     /// - Parameter userId: User ID (use current user's ID)

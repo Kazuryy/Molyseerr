@@ -185,3 +185,22 @@ struct Creator: Codable, Identifiable {
     let gender: Int?
     let profilePath: String?
 }
+
+// MARK: - Episode Extensions
+
+extension Episode {
+    /// Create Episode from TMDBEpisode
+    init(from tmdbEpisode: TMDBEpisode) {
+        self.id = tmdbEpisode.id
+        self.name = tmdbEpisode.name
+        self.airDate = tmdbEpisode.airDate
+        self.episodeNumber = tmdbEpisode.episodeNumber
+        self.overview = tmdbEpisode.overview
+        self.productionCode = tmdbEpisode.productionCode
+        self.seasonNumber = tmdbEpisode.seasonNumber
+        self.showId = tmdbEpisode.showId
+        self.stillPath = tmdbEpisode.stillPath
+        self.voteAverage = tmdbEpisode.voteAverage
+        self.voteCount = tmdbEpisode.voteCount
+    }
+}

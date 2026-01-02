@@ -215,17 +215,31 @@ struct Keyword: Codable, Identifiable {
 
 /// Watchlist item
 struct WatchlistItem: Codable, Identifiable {
-    let id: Int?
+    private let _id: Int?
     let ratingKey: String?
     let title: String
     let mediaType: String
     let tmdbId: Int?
 
-    var displayId: Int {
-        id ?? tmdbId ?? 0
+    var id: Int {
+        _id ?? tmdbId ?? 0
+    }
+
+    var mediaTypeEnum: MediaType {
+        mediaType.lowercased() == "movie" ? .movie : .tv
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, ratingKey, title, mediaType, tmdbId
+        case _id = "id"
+        case ratingKey, title, mediaType, tmdbId
     }
+}
+
+/// Watchlist response with pagination
+/// Source: seerr-api.yml /user/{userId}/watchlist endpoint
+struct WatchlistResponse: Codable {
+    let page: Int
+    let totalPages: Int
+    let totalResults: Int
+    let results: [WatchlistItem]
 }
