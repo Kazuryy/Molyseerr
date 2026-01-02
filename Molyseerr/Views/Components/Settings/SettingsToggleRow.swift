@@ -46,7 +46,7 @@ struct SettingsToggleRow: View {
                 if let description = description {
                     Text(description)
                         .font(.system(size: 18))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.gray)
                 }
             }
 
@@ -55,12 +55,12 @@ struct SettingsToggleRow: View {
             // Toggle
             Toggle("", isOn: $isOn)
                 .labelsHidden()
+                .tint(.Seerr.primary)
         }
         .padding(24)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white.opacity(0.1))
-                .background(.ultraThinMaterial)
+                .fill(Color.Seerr.cardBackground)
         )
     }
 }

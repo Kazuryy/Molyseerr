@@ -169,39 +169,31 @@ struct AllMoviesView: View {
 
     private var contentView: some View {
         ScrollView {
-            LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: 50),
-                GridItem(.flexible(), spacing: 50),
-                GridItem(.flexible(), spacing: 50),
-                GridItem(.flexible(), spacing: 50),
-                GridItem(.flexible(), spacing: 50),
-                GridItem(.flexible(), spacing: 50)
-            ], spacing: 50) {
-                ForEach(viewModel.movies, id: \.id) { mediaResult in
-                    MediaCardView(item: mediaResult)
-                        .onAppear {
-                            // Load more when approaching the end
-                            if mediaResult.id == viewModel.movies.last?.id {
-                                Task {
-                                    await viewModel.loadMoreMovies(filters: filterViewModel)
-                                }
-                            }
+            VStack(spacing: 0) {
+                // Smart grid with improved focus navigation
+                SmartMediaGrid(
+                    items: viewModel.movies,
+                    columnsPerRow: 6,
+                    spacing: 50,
+                    horizontalPadding: 48
+                ) { mediaResult in
+                    // Load more when approaching the end
+                    if mediaResult.id == viewModel.movies.last?.id {
+                        Task {
+                            await viewModel.loadMoreMovies(filters: filterViewModel)
                         }
+                    }
                 }
 
                 // Loading indicator at bottom
                 if viewModel.isLoadingMore {
-                    VStack {
-                        ProgressView()
-                            .scaleEffect(1.2)
-                            .tint(.white)
-                            .padding(.top, 40)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .gridCellColumns(6)
+                    ProgressView()
+                        .scaleEffect(1.2)
+                        .tint(.white)
+                        .padding(.top, 40)
+                        .padding(.bottom, 60)
                 }
             }
-            .padding(48)
         }
     }
 }

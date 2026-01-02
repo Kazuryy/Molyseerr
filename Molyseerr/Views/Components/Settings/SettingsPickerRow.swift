@@ -52,7 +52,7 @@ struct SettingsPickerRow: View {
                     if let description = description {
                         Text(description)
                             .font(.system(size: 18))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.gray)
                     }
                 }
 
@@ -60,25 +60,18 @@ struct SettingsPickerRow: View {
 
                 // Current value
                 Text(currentValue)
-                    .font(.system(size: 20))
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(.white.opacity(0.7))
 
                 // Chevron
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 20))
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.5))
             }
             .padding(24)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.white.opacity(isFocused ? 0.2 : 0.1))
-                    .background(.ultraThinMaterial)
-            )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.card)
         .focused($isFocused)
-        .scaleEffect(isFocused ? 1.02 : 1.0)
-        .animation(.easeInOut(duration: 0.15), value: isFocused)
     }
 }
 
