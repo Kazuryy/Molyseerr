@@ -146,6 +146,11 @@ struct CalendarResponse: Codable {
 // MARK: - CalendarItem Extension
 
 extension CalendarItem {
+    /// Media type as enum
+    var mediaTypeEnum: MediaType {
+        return type == "movie" ? .movie : .tv
+    }
+
     /// Convert CalendarItem to MediaResult for navigation
     func toMediaResult() -> MediaResult {
         if type == "movie" {

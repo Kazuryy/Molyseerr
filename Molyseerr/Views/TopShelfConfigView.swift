@@ -15,6 +15,7 @@ struct TopShelfConfigView: View {
 
     @StateObject private var viewModel = TopShelfConfigViewModel()
     @Environment(\.dismiss) private var dismiss
+    @State private var cacheTimestamp: Date? = TopShelfSettings.shared.cacheTimestamp
 
     // MARK: - Body
 
@@ -82,10 +83,11 @@ struct TopShelfConfigView: View {
                 TopShelfRefreshCacheButton {
                     Task {
                         await viewModel.refreshAllSliders()
+                        cacheTimestamp = TopShelfSettings.shared.cacheTimestamp
                     }
                 }
             } footer: {
-                if let timestamp = TopShelfSettings.shared.cacheTimestamp {
+                if let timestamp = cacheTimestamp {
                     let age = Date().timeIntervalSince(timestamp)
                     let minutes = Int(age / 60)
                     Text("Cache last updated \(minutes) minute\(minutes == 1 ? "" : "s") ago")
@@ -120,11 +122,8 @@ final class TopShelfConfigViewModel: ObservableObject {
     @Published var displayMode: TopShelfDisplayMode {
         didSet {
             TopShelfSettings.shared.displayMode = displayMode
-            // If switching to hero mode and multiple sliders selected, keep only first
-            if displayMode == .hero && selectedSliders.count > 1 {
-                selectedSliders = Array(selectedSliders.prefix(1))
-                saveSettings()
-            }
+            // Reload sliders for the new mode (each mode has its own memory)
+            selectedSliders = settings.selectedSliders
         }
     }
 
@@ -389,12 +388,28 @@ final class TopShelfConfigViewModel: ObservableObject {
             let response = try await seerrService.getTVByNetwork(networkId: networkId)
             return Array(response.results.prefix(20))
 
+        case .request(let filter, let sort, let take):
+            // Fetch recent requests
+            let requestList = try await seerrService.getRequestList(filter: filter, sort: sort, take: take, skip: 0)
+            print("📋 Fetched \(requestList.results.count) requests from Seerr")
+
+            // Convert MediaRequest to MediaResult by fetching TMDB data
+            let results = try await fetchRequestDetails(requestList.results)
+            print("📋 Converted \(results.count) requests with TMDB data")
+            return results
+
+        case .calendar(let start, let end):
+            // Fetch today's releases from calendar
+            let calendarItems = try await seerrService.getUpcomingCalendar(startDate: start, endDate: end)
+            print("📋 Fetched \(calendarItems.count) calendar items from Seerr")
+
+            // Convert calendar items to MediaResult
+            let results = try await fetchCalendarDetails(calendarItems)
+            print("📋 Converted \(results.count) calendar items with TMDB data")
+            return results
+
         case .genreSlider, .studioList, .networkList:
             // These require special UI handling, not supported in TopShelf
-            throw SeerrError.invalidSliderData
-
-        case .calendar, .request:
-            // Not yet implemented for TopShelf
             throw SeerrError.invalidSliderData
 
         case .error(let message):
@@ -716,6 +731,210 @@ final class TopShelfConfigViewModel: ObservableObject {
         return results
     }
 
+    /// Fetch request details from MediaRequest objects (for Recent Requests slider)
+    private func fetchRequestDetails(_ requests: [MediaRequest]) async throws -> [MediaResult] {
+        let tmdbService = TMDBService.shared
+        var results: [MediaResult] = []
+        var skippedCount = 0
+
+        for request in requests.prefix(20) {
+            guard let media = request.media else {
+                print("⚠️ Request has no media, skipping")
+                skippedCount += 1
+                continue
+            }
+
+            let tmdbId = media.tmdbId
+            let mediaType = media.mediaType ?? .movie
+
+            do {
+                if mediaType == .movie {
+                    // Fetch from TMDB for reliable poster/backdrop data
+                    async let tmdbDetails = tmdbService.getMovieDetails(id: tmdbId)
+                    async let seerrDetails = try? seerrService.getMovieDetails(id: tmdbId)
+
+                    let (tmdb, seerr) = try await (tmdbDetails, seerrDetails)
+
+                    // Skip items without poster OR backdrop
+                    let hasPoster = tmdb.posterPath != nil && !tmdb.posterPath!.isEmpty
+                    let hasBackdrop = tmdb.backdropPath != nil && !tmdb.backdropPath!.isEmpty
+
+                    guard hasPoster || hasBackdrop else {
+                        print("⚠️ Skipping movie '\(tmdb.title)' (ID: \(tmdbId)) - no poster or backdrop")
+                        skippedCount += 1
+                        continue
+                    }
+
+                    let movie = MovieResult(
+                        id: tmdb.id,
+                        adult: tmdb.adult,
+                        backdropPath: tmdb.backdropPath,
+                        posterPath: tmdb.posterPath,
+                        genreIds: tmdb.genres?.map { $0.id },
+                        originalLanguage: tmdb.originalLanguage,
+                        originalTitle: tmdb.originalTitle,
+                        overview: tmdb.overview,
+                        popularity: tmdb.popularity,
+                        releaseDate: tmdb.releaseDate,
+                        firstAirDate: nil,
+                        title: tmdb.title,
+                        name: nil,
+                        originCountry: nil,
+                        originalName: nil,
+                        video: false,
+                        voteAverage: tmdb.voteAverage,
+                        voteCount: tmdb.voteCount,
+                        mediaType: "movie",
+                        mediaInfo: seerr?.mediaInfo
+                    )
+                    results.append(.movie(movie))
+                } else {
+                    // Fetch from TMDB for reliable poster/backdrop data
+                    async let tmdbDetails = tmdbService.getTVDetails(id: tmdbId)
+                    async let seerrDetails = try? seerrService.getTVDetails(id: tmdbId)
+
+                    let (tmdb, seerr) = try await (tmdbDetails, seerrDetails)
+
+                    // Skip items without poster OR backdrop
+                    let hasPoster = tmdb.posterPath != nil && !tmdb.posterPath!.isEmpty
+                    let hasBackdrop = tmdb.backdropPath != nil && !tmdb.backdropPath!.isEmpty
+
+                    guard hasPoster || hasBackdrop else {
+                        print("⚠️ Skipping TV show '\(tmdb.name)' (ID: \(tmdbId)) - no poster or backdrop")
+                        skippedCount += 1
+                        continue
+                    }
+
+                    let tv = TVResult(
+                        id: tmdb.id,
+                        backdropPath: tmdb.backdropPath,
+                        posterPath: tmdb.posterPath,
+                        genreIds: tmdb.genres?.map { $0.id },
+                        originalLanguage: tmdb.originalLanguage,
+                        originalName: tmdb.originalName,
+                        overview: tmdb.overview,
+                        popularity: tmdb.popularity,
+                        firstAirDate: tmdb.firstAirDate,
+                        name: tmdb.name,
+                        voteAverage: tmdb.voteAverage,
+                        voteCount: tmdb.voteCount,
+                        originCountry: tmdb.originCountry,
+                        mediaType: "tv",
+                        mediaInfo: seerr?.mediaInfo
+                    )
+                    results.append(.tv(tv))
+                }
+            } catch {
+                // Skip items that fail to fetch
+                print("⚠️ Failed to fetch request item \(tmdbId): \(error)")
+                skippedCount += 1
+                continue
+            }
+        }
+
+        print("✅ Fetched \(results.count) request items with posters (skipped \(skippedCount) items)")
+        return results
+    }
+
+    /// Fetch calendar details (for Today's Releases slider)
+    private func fetchCalendarDetails(_ calendarItems: [CalendarItem]) async throws -> [MediaResult] {
+        let tmdbService = TMDBService.shared
+        var results: [MediaResult] = []
+        var skippedCount = 0
+
+        for calendarItem in calendarItems.prefix(20) {
+            let tmdbId = calendarItem.tmdbId
+            let mediaType = calendarItem.mediaTypeEnum
+
+            do {
+                if mediaType == .movie {
+                    // Fetch from TMDB for reliable poster/backdrop data
+                    async let tmdbDetails = tmdbService.getMovieDetails(id: tmdbId)
+                    async let seerrDetails = try? seerrService.getMovieDetails(id: tmdbId)
+
+                    let (tmdb, seerr) = try await (tmdbDetails, seerrDetails)
+
+                    // Skip items without poster OR backdrop
+                    let hasPoster = tmdb.posterPath != nil && !tmdb.posterPath!.isEmpty
+                    let hasBackdrop = tmdb.backdropPath != nil && !tmdb.backdropPath!.isEmpty
+
+                    guard hasPoster || hasBackdrop else {
+                        print("⚠️ Skipping movie '\(tmdb.title)' (ID: \(tmdbId)) - no poster or backdrop")
+                        skippedCount += 1
+                        continue
+                    }
+
+                    let movie = MovieResult(
+                        id: tmdb.id,
+                        adult: tmdb.adult,
+                        backdropPath: tmdb.backdropPath,
+                        posterPath: tmdb.posterPath,
+                        genreIds: tmdb.genres?.map { $0.id },
+                        originalLanguage: tmdb.originalLanguage,
+                        originalTitle: tmdb.originalTitle,
+                        overview: tmdb.overview,
+                        popularity: tmdb.popularity,
+                        releaseDate: tmdb.releaseDate,
+                        firstAirDate: nil,
+                        title: tmdb.title,
+                        name: nil,
+                        originCountry: nil,
+                        originalName: nil,
+                        video: false,
+                        voteAverage: tmdb.voteAverage,
+                        voteCount: tmdb.voteCount,
+                        mediaType: "movie",
+                        mediaInfo: seerr?.mediaInfo
+                    )
+                    results.append(.movie(movie))
+                } else {
+                    // Fetch from TMDB for reliable poster/backdrop data
+                    async let tmdbDetails = tmdbService.getTVDetails(id: tmdbId)
+                    async let seerrDetails = try? seerrService.getTVDetails(id: tmdbId)
+
+                    let (tmdb, seerr) = try await (tmdbDetails, seerrDetails)
+
+                    // Skip items without poster OR backdrop
+                    let hasPoster = tmdb.posterPath != nil && !tmdb.posterPath!.isEmpty
+                    let hasBackdrop = tmdb.backdropPath != nil && !tmdb.backdropPath!.isEmpty
+
+                    guard hasPoster || hasBackdrop else {
+                        print("⚠️ Skipping TV show '\(tmdb.name)' (ID: \(tmdbId)) - no poster or backdrop")
+                        skippedCount += 1
+                        continue
+                    }
+
+                    let tv = TVResult(
+                        id: tmdb.id,
+                        backdropPath: tmdb.backdropPath,
+                        posterPath: tmdb.posterPath,
+                        genreIds: tmdb.genres?.map { $0.id },
+                        originalLanguage: tmdb.originalLanguage,
+                        originalName: tmdb.originalName,
+                        overview: tmdb.overview,
+                        popularity: tmdb.popularity,
+                        firstAirDate: tmdb.firstAirDate,
+                        name: tmdb.name,
+                        voteAverage: tmdb.voteAverage,
+                        voteCount: tmdb.voteCount,
+                        originCountry: tmdb.originCountry,
+                        mediaType: "tv",
+                        mediaInfo: seerr?.mediaInfo
+                    )
+                    results.append(.tv(tv))
+                }
+            } catch {
+                // Skip items that fail to fetch
+                print("⚠️ Failed to fetch calendar item \(tmdbId): \(error)")
+                skippedCount += 1
+                continue
+            }
+        }
+
+        print("✅ Fetched \(results.count) calendar items with posters (skipped \(skippedCount) items)")
+        return results
+    }
+
     enum SeerrError: Error {
         case invalidSliderData
     }
@@ -796,11 +1015,10 @@ final class TopShelfConfigViewModel: ObservableObject {
 
 // MARK: - Custom Components
 
-/// Display Mode selection row (styled like settings)
+/// Display Mode selection row (native tvOS style)
 struct TopShelfDisplayModeRow: View {
     let title: String
     @Binding var selection: TopShelfDisplayMode
-    @FocusState private var isFocused: Bool
 
     init(_ title: String, selection: Binding<TopShelfDisplayMode>) {
         self.title = title
@@ -808,140 +1026,58 @@ struct TopShelfDisplayModeRow: View {
     }
 
     var body: some View {
-        Menu {
-            Picker(title, selection: $selection) {
-                ForEach(TopShelfDisplayMode.allCases, id: \.rawValue) { mode in
-                    Text(mode.displayName).tag(mode)
-                }
+        Picker(title, selection: $selection) {
+            ForEach(TopShelfDisplayMode.allCases, id: \.rawValue) { mode in
+                Text(mode.displayName).tag(mode)
             }
-        } label: {
-            HStack {
-                Text(title)
-                    .foregroundStyle(isFocused ? .black : .white)
-                    .padding(.leading, 4)
-
-                Spacer()
-
-                Text(selection.displayName)
-                    .foregroundStyle(isFocused ? .black : .secondary)
-                    .brightness(isFocused ? 0.4 : 0)
-
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(.body.weight(.regular))
-                    .foregroundStyle(isFocused ? .black : .secondary)
-                    .brightness(isFocused ? 0.4 : 0)
-            }
-            .padding(.horizontal)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(isFocused ? Color.white : Color.clear)
-            )
-            .scaleEffect(isFocused ? 1.04 : 1.0)
-            .animation(.easeInOut(duration: 0.125), value: isFocused)
         }
-        .menuStyle(.borderlessButton)
-        .listRowInsets(EdgeInsets())
-        .focused($isFocused)
     }
 }
 
-/// Slider selection row (styled like settings)
+/// Slider selection row (native tvOS style)
 struct TopShelfSliderRow: View {
     let slider: TopShelfSlider
     let isSelected: Bool
     let isDisabled: Bool
     let action: () -> Void
 
-    @FocusState private var isFocused: Bool
-
     var body: some View {
         Button(action: action) {
             HStack {
                 Text(slider.displayTitle)
-                    .foregroundStyle(isFocused ? .black : .white)
-                    .padding(.leading, 4)
 
                 Spacer()
 
                 if isSelected {
                     Image(systemName: "checkmark")
-                        .foregroundStyle(isFocused ? .black : .secondary)
-                        .brightness(isFocused ? 0.4 : 0)
+                        .foregroundColor(.secondary)
                 }
             }
-            .padding(.horizontal)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(isFocused ? Color.white : Color.clear)
-            )
-            .scaleEffect(isFocused ? 1.04 : 1.0)
-            .animation(.easeInOut(duration: 0.125), value: isFocused)
         }
         .disabled(isDisabled)
         .opacity(isDisabled ? 0.5 : 1.0)
-        .buttonStyle(.plain)
-        .listRowInsets(EdgeInsets())
-        .focused($isFocused)
     }
 }
 
-/// Reload button (styled like settings)
+/// Reload button (native tvOS style)
 struct TopShelfReloadButton: View {
     let action: () -> Void
-    @FocusState private var isFocused: Bool
 
     var body: some View {
         Button(action: action) {
-            HStack {
-                Image(systemName: "arrow.clockwise")
-                    .foregroundStyle(isFocused ? .black : .white)
-                Text("Reload Sliders from Seerr")
-                    .foregroundStyle(isFocused ? .black : .white)
-                    .padding(.leading, 4)
-            }
-            .padding(.horizontal)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(isFocused ? Color.white : Color.clear)
-            )
-            .scaleEffect(isFocused ? 1.04 : 1.0)
-            .animation(.easeInOut(duration: 0.125), value: isFocused)
+            Label("Reload Sliders from Seerr", systemImage: "arrow.clockwise")
         }
-        .buttonStyle(.plain)
-        .listRowInsets(EdgeInsets())
-        .focused($isFocused)
     }
 }
 
-/// Refresh cache button (styled like settings)
+/// Refresh cache button (native tvOS style)
 struct TopShelfRefreshCacheButton: View {
     let action: () -> Void
-    @FocusState private var isFocused: Bool
 
     var body: some View {
         Button(action: action) {
-            HStack {
-                Image(systemName: "arrow.triangle.2.circlepath")
-                    .foregroundStyle(isFocused ? .black : .white)
-                Text("Refresh TopShelf Cache")
-                    .foregroundStyle(isFocused ? .black : .white)
-                    .padding(.leading, 4)
-            }
-            .padding(.horizontal)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(isFocused ? Color.white : Color.clear)
-            )
-            .scaleEffect(isFocused ? 1.04 : 1.0)
-            .animation(.easeInOut(duration: 0.125), value: isFocused)
+            Label("Refresh TopShelf Cache", systemImage: "arrow.triangle.2.circlepath")
         }
-        .buttonStyle(.plain)
-        .listRowInsets(EdgeInsets())
-        .focused($isFocused)
     }
 }
 
@@ -962,6 +1098,7 @@ struct TopShelfSlider {
     private func defaultTitle(for type: Int) -> String {
         switch type {
         case 1: return "Recently Added"
+        case 2: return "Recent Requests"
         case 3: return "Watchlist"
         case 4: return "Trending"
         case 5: return "Popular Movies"

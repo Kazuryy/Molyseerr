@@ -92,27 +92,7 @@ struct SettingsView: View {
     private var settingsContent: some View {
         // TopShelf Settings Section
         Section {
-            NavigationLink {
-                TopShelfConfigView()
-            } label: {
-                HStack {
-                    Text("TopShelf Sliders")
-                        .foregroundColor(.white)
-
-                    Spacer()
-
-                    let count = TopShelfSettings.shared.selectedSliders.count
-                    if count > 0 {
-                        Text("\(count) selected")
-                            .foregroundColor(.Seerr.secondaryText)
-                            .font(.caption)
-                    } else {
-                        Text("None")
-                            .foregroundColor(.Seerr.secondaryText)
-                            .font(.caption)
-                    }
-                }
-            }
+            TopShelfNavigationRow()
         } header: {
             Text("TopShelf (Home Screen)")
         } footer: {
@@ -298,6 +278,29 @@ struct SettingsView: View {
 }
 
 // MARK: - Settings Components
+
+/// Navigation row for TopShelf settings
+struct TopShelfNavigationRow: View {
+    @State private var displayMode: TopShelfDisplayMode = TopShelfSettings.shared.displayMode
+
+    var body: some View {
+        NavigationLink {
+            TopShelfConfigView()
+        } label: {
+            HStack {
+                Text("TopShelf Sliders")
+
+                Spacer()
+
+                Text(displayMode.displayName)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .onAppear {
+            displayMode = TopShelfSettings.shared.displayMode
+        }
+    }
+}
 
 /// Menu row for settings with dropdown selection (Swiftfin style)
 struct SettingsMenuRow: View {

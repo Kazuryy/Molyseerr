@@ -16,9 +16,9 @@ enum TopShelfDisplayMode: String, Codable, CaseIterable {
     var displayName: String {
         switch self {
         case .hero:
-            return "Hero (Apple TV+ Style)"
+            return "Hero Banner (Backdrops)"
         case .sectioned:
-            return "Sectioned (Netflix Style)"
+            return "Sectioned (Posters)"
         }
     }
 }
@@ -74,7 +74,9 @@ class TopShelfSettings {
 
     private let displayModeKey = "topshelf_display_mode"
     private let contentSourceKey = "topshelf_content_source" // Legacy - kept for migration
-    private let selectedSlidersKey = "topshelf_selected_sliders"
+    private let selectedSlidersKey = "topshelf_selected_sliders" // Legacy - kept for migration
+    private let heroSliderKey = "topshelf_hero_slider" // Hero mode slider (single)
+    private let sectionedSlidersKey = "topshelf_sectioned_sliders" // Sectioned mode sliders (multiple)
     private let seerrURLKey = "topshelf_seerr_url"
     private let seerrAPIKeyKey = "topshelf_seerr_api_key"
     private let sliderContentCacheKey = "topshelf_slider_content_cache" // Cache des IDs TMDB
@@ -115,22 +117,76 @@ class TopShelfSettings {
         }
     }
 
-    /// Selected sliders for TopShelf (new dynamic system)
-    var selectedSliders: [TopShelfSliderConfig] {
+    /// Hero mode slider (single slider)
+    var heroSlider: TopShelfSliderConfig? {
         get {
             guard let userDefaults = userDefaults,
-                  let data = userDefaults.data(forKey: selectedSlidersKey),
+                  let data = userDefaults.data(forKey: heroSliderKey),
+                  let slider = try? JSONDecoder().decode(TopShelfSliderConfig.self, from: data) else {
+                return nil
+            }
+            return slider
+        }
+        set {
+            if let newValue = newValue,
+               let encoded = try? JSONEncoder().encode(newValue) {
+                userDefaults?.set(encoded, forKey: heroSliderKey)
+            } else {
+                userDefaults?.removeObject(forKey: heroSliderKey)
+            }
+            userDefaults?.synchronize()
+            notifyExtension()
+        }
+    }
+
+    /// Sectioned mode sliders (multiple sliders, max 4)
+    var sectionedSliders: [TopShelfSliderConfig] {
+        get {
+            guard let userDefaults = userDefaults,
+                  let data = userDefaults.data(forKey: sectionedSlidersKey),
                   let sliders = try? JSONDecoder().decode([TopShelfSliderConfig].self, from: data) else {
-                return [] // Empty by default - will fall back to legacy
+                return []
             }
             return sliders
         }
         set {
             if let encoded = try? JSONEncoder().encode(newValue) {
-                userDefaults?.set(encoded, forKey: selectedSlidersKey)
+                userDefaults?.set(encoded, forKey: sectionedSlidersKey)
                 userDefaults?.synchronize()
                 notifyExtension()
             }
+        }
+    }
+
+    /// Selected sliders for current display mode (computed property)
+    var selectedSliders: [TopShelfSliderConfig] {
+        get {
+            switch displayMode {
+            case .hero:
+                return heroSlider.map { [$0] } ?? []
+            case .sectioned:
+                return sectionedSliders
+            }
+        }
+        set {
+            switch displayMode {
+            case .hero:
+                heroSlider = newValue.first
+            case .sectioned:
+                sectionedSliders = Array(newValue.prefix(4)) // Max 4 sliders
+            }
+        }
+    }
+
+    /// Legacy selectedSliders (kept for migration)
+    private var legacySelectedSliders: [TopShelfSliderConfig] {
+        get {
+            guard let userDefaults = userDefaults,
+                  let data = userDefaults.data(forKey: selectedSlidersKey),
+                  let sliders = try? JSONDecoder().decode([TopShelfSliderConfig].self, from: data) else {
+                return []
+            }
+            return sliders
         }
     }
 
@@ -246,7 +302,9 @@ class TopShelfSettings {
         6,  // movieGenres
         8,  // studios
         10, // tvGenres
-        12  // networks
+        12, // networks
+        22, // deletionRequests (not implemented)
+        26  // expiringSoon (not implemented)
     ]
 
     /// Check if a slider type is supported for TopShelf
@@ -256,12 +314,32 @@ class TopShelfSettings {
 
     // MARK: - Migration Helpers
 
-    /// Migrate from legacy contentSource to new slider system
+    /// Migrate from legacy settings to new dual-mode system
     func migrateLegacySettings() {
-        // If we already have sliders configured, skip migration
-        guard selectedSliders.isEmpty else { return }
+        // Check if we need to migrate from legacy selectedSliders
+        let legacy = legacySelectedSliders
 
-        // Map legacy source to slider config
+        if !legacy.isEmpty {
+            // Migrate legacy sliders to new system
+            if displayMode == .hero {
+                heroSlider = legacy.first
+            } else {
+                sectionedSliders = Array(legacy.prefix(4))
+            }
+
+            // Clear legacy key
+            userDefaults?.removeObject(forKey: selectedSlidersKey)
+            userDefaults?.synchronize()
+            print("✅ Migrated legacy sliders to new dual-mode system")
+            return
+        }
+
+        // If we already have sliders configured in new system, skip migration
+        if heroSlider != nil || !sectionedSliders.isEmpty {
+            return
+        }
+
+        // Map legacy contentSource to slider config
         let legacyMapping: [TopShelfContentSource: TopShelfSliderConfig] = [
             .trending: TopShelfSliderConfig(id: -1, title: "Trending", type: 4),
             .popularMovies: TopShelfSliderConfig(id: -2, title: "Popular Movies", type: 5),
@@ -270,7 +348,8 @@ class TopShelfSettings {
         ]
 
         if let migrated = legacyMapping[contentSource] {
-            selectedSliders = [migrated]
+            heroSlider = migrated
+            print("✅ Migrated legacy contentSource to hero slider")
         }
     }
 }
