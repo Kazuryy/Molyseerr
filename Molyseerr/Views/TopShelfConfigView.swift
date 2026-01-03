@@ -178,6 +178,16 @@ final class TopShelfConfigViewModel: ObservableObject {
                 }
 
             print("📱 Loaded \(availableSliders.count) supported sliders")
+
+            // Clean up selected sliders - remove any that are no longer available
+            let availableIDs = Set(availableSliders.map { $0.id })
+            let cleanedSliders = selectedSliders.filter { availableIDs.contains($0.id) }
+
+            if cleanedSliders.count != selectedSliders.count {
+                print("🧹 Cleaned up \(selectedSliders.count - cleanedSliders.count) disabled slider(s)")
+                selectedSliders = cleanedSliders
+                settings.selectedSliders = cleanedSliders
+            }
         } catch {
             errorMessage = "Failed to load sliders: \(error.localizedDescription)"
             showError = true

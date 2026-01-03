@@ -96,7 +96,7 @@ class ContentProvider: TVTopShelfContentProvider {
             throw ContentError.seerrNotConfigured
         }
 
-        let items = try await seerrService.getSliderContent(slider: slider, limit: 8)
+        let items = try await seerrService.getSliderContent(slider: slider, limit: 12)
         print("📦 Fetched \(items.count) items from Seerr")
 
         var carouselItems: [TVTopShelfCarouselItem] = []
