@@ -21,6 +21,21 @@ struct TopShelfConfigView: View {
 
     var body: some View {
         List {
+            // Title Section
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("TopShelf Configuration")
+                        .font(.system(size: 48, weight: .bold))
+                        .foregroundColor(.white)
+                    Text("Configure what appears on your tvOS home screen")
+                        .font(.system(size: 20))
+                        .foregroundColor(.Seerr.secondaryText)
+                }
+                .padding(.vertical, 20)
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
+
             // Display Mode Section
             Section {
                 TopShelfDisplayModeRow(
@@ -98,7 +113,6 @@ struct TopShelfConfigView: View {
                 }
             }
         }
-        .navigationTitle("TopShelf Configuration")
         .task {
             await viewModel.loadSliders()
         }
