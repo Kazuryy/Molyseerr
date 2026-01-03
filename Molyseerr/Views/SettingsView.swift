@@ -92,27 +92,31 @@ struct SettingsView: View {
     private var settingsContent: some View {
         // TopShelf Settings Section
         Section {
-            SettingsTopShelfRow(
-                "Display Mode",
-                selection: Binding(
-                    get: { TopShelfSettings.shared.displayMode },
-                    set: { TopShelfSettings.shared.displayMode = $0 }
-                ),
-                options: TopShelfDisplayMode.allCases.map { ($0.rawValue, $0.displayName) }
-            )
+            NavigationLink {
+                TopShelfConfigView()
+            } label: {
+                HStack {
+                    Text("TopShelf Sliders")
+                        .foregroundColor(.white)
 
-            SettingsTopShelfRow(
-                "Content Source",
-                selection: Binding(
-                    get: { TopShelfSettings.shared.contentSource },
-                    set: { TopShelfSettings.shared.contentSource = $0 }
-                ),
-                options: TopShelfContentSource.allCases.map { ($0.rawValue, $0.displayName) }
-            )
+                    Spacer()
+
+                    let count = TopShelfSettings.shared.selectedSliders.count
+                    if count > 0 {
+                        Text("\(count) selected")
+                            .foregroundColor(.Seerr.secondaryText)
+                            .font(.caption)
+                    } else {
+                        Text("None")
+                            .foregroundColor(.Seerr.secondaryText)
+                            .font(.caption)
+                    }
+                }
+            }
         } header: {
             Text("TopShelf (Home Screen)")
         } footer: {
-            Text("Configure what appears on your tvOS home screen when Molyseerr is focused")
+            Text("Configure what sliders appear on your tvOS home screen when Molyseerr is focused")
                 .foregroundColor(.Seerr.secondaryText)
         }
 

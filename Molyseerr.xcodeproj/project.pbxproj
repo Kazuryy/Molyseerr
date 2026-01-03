@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BD73B7BD2F07DEA90057C0C0 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = BD8788802EFC35EB00D1BDCB /* Kingfisher */; };
 		BDC4BDBC2F07CE5200CC18A7 /* TVServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDC4BD8A2F07CDAE00CC18A7 /* TVServices.framework */; };
 		BDC4BDC32F07CE5200CC18A7 /* Molyseerr TopShelf.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BDC4BDBB2F07CE5200CC18A7 /* Molyseerr TopShelf.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -107,6 +108,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BD73B7BD2F07DEA90057C0C0 /* Kingfisher in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
