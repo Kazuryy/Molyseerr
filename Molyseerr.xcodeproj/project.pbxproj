@@ -7,37 +7,128 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		BD8788812EFC35EB00D1BDCB /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = BD8788802EFC35EB00D1BDCB /* Kingfisher */; };
+		BD73B7BD2F07DEA90057C0C0 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = BD8788802EFC35EB00D1BDCB /* Kingfisher */; };
+		BDC4BDBC2F07CE5200CC18A7 /* TVServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDC4BD8A2F07CDAE00CC18A7 /* TVServices.framework */; };
+		BDC4BDC32F07CE5200CC18A7 /* Molyseerr TopShelf.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BDC4BDBB2F07CE5200CC18A7 /* Molyseerr TopShelf.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		BDC4BDC12F07CE5200CC18A7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BDCBD91A2EFAE94D00FB36AE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BDC4BDBA2F07CE5200CC18A7;
+			remoteInfo = "Molyseerr TopShelf";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		BDC4BD972F07CDAF00CC18A7 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				BDC4BDC32F07CE5200CC18A7 /* Molyseerr TopShelf.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		BDC4BD8A2F07CDAE00CC18A7 /* TVServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = TVServices.framework; path = System/Library/Frameworks/TVServices.framework; sourceTree = SDKROOT; };
+		BDC4BDBB2F07CE5200CC18A7 /* Molyseerr TopShelf.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Molyseerr TopShelf.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDCBD9222EFAE94D00FB36AE /* Molyseerr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Molyseerr.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		BDC4BDC42F07CE5200CC18A7 /* Exceptions for "Molyseerr TopShelf" folder in "Molyseerr TopShelf" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = BDC4BDBA2F07CE5200CC18A7 /* Molyseerr TopShelf */;
+		};
+		BDC4BDD02F07D02900CC18A7 /* Exceptions for "Molyseerr" folder in "Molyseerr TopShelf" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Services/TMDBService.swift,
+			);
+			target = BDC4BDBA2F07CE5200CC18A7 /* Molyseerr TopShelf */;
+		};
+		BDC4BDD32F07D07300CC18A7 /* Exceptions for "Molyseerr TopShelf" folder in "Molyseerr" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				TopShelfImageCache.swift,
+				TopShelfSettings.swift,
+			);
+			target = BDCBD9212EFAE94D00FB36AE /* Molyseerr */;
+		};
+		BDC4BDD62F07D2CF00CC18A7 /* Exceptions for "Molyseerr" folder in "Molyseerr" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = BDCBD9212EFAE94D00FB36AE /* Molyseerr */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		BDC4BDBD2F07CE5200CC18A7 /* Molyseerr TopShelf */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				BDC4BDD32F07D07300CC18A7 /* Exceptions for "Molyseerr TopShelf" folder in "Molyseerr" target */,
+				BDC4BDC42F07CE5200CC18A7 /* Exceptions for "Molyseerr TopShelf" folder in "Molyseerr TopShelf" target */,
+			);
+			path = "Molyseerr TopShelf";
+			sourceTree = "<group>";
+		};
 		BDCBD9242EFAE94D00FB36AE /* Molyseerr */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				BDC4BDD62F07D2CF00CC18A7 /* Exceptions for "Molyseerr" folder in "Molyseerr" target */,
+				BDC4BDD02F07D02900CC18A7 /* Exceptions for "Molyseerr" folder in "Molyseerr TopShelf" target */,
+			);
 			path = Molyseerr;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		BDC4BDB82F07CE5200CC18A7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BDC4BDBC2F07CE5200CC18A7 /* TVServices.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BDCBD91F2EFAE94D00FB36AE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BD8788812EFC35EB00D1BDCB /* Kingfisher in Frameworks */,
+				BD73B7BD2F07DEA90057C0C0 /* Kingfisher in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BDC4BD892F07CDAE00CC18A7 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				BDC4BD8A2F07CDAE00CC18A7 /* TVServices.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		BDCBD9192EFAE94C00FB36AE = {
 			isa = PBXGroup;
 			children = (
 				BDCBD9242EFAE94D00FB36AE /* Molyseerr */,
+				BDC4BDBD2F07CE5200CC18A7 /* Molyseerr TopShelf */,
+				BDC4BD892F07CDAE00CC18A7 /* Frameworks */,
 				BDCBD9232EFAE94D00FB36AE /* Products */,
 			);
 			sourceTree = "<group>";
@@ -46,6 +137,7 @@
 			isa = PBXGroup;
 			children = (
 				BDCBD9222EFAE94D00FB36AE /* Molyseerr.app */,
+				BDC4BDBB2F07CE5200CC18A7 /* Molyseerr TopShelf.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -53,6 +145,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		BDC4BDBA2F07CE5200CC18A7 /* Molyseerr TopShelf */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BDC4BDC52F07CE5200CC18A7 /* Build configuration list for PBXNativeTarget "Molyseerr TopShelf" */;
+			buildPhases = (
+				BDC4BDB72F07CE5200CC18A7 /* Sources */,
+				BDC4BDB82F07CE5200CC18A7 /* Frameworks */,
+				BDC4BDB92F07CE5200CC18A7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				BDC4BDBD2F07CE5200CC18A7 /* Molyseerr TopShelf */,
+			);
+			name = "Molyseerr TopShelf";
+			packageProductDependencies = (
+			);
+			productName = "Molyseerr TopShelf";
+			productReference = BDC4BDBB2F07CE5200CC18A7 /* Molyseerr TopShelf.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		BDCBD9212EFAE94D00FB36AE /* Molyseerr */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = BDCBD92D2EFAE94F00FB36AE /* Build configuration list for PBXNativeTarget "Molyseerr" */;
@@ -60,10 +174,12 @@
 				BDCBD91E2EFAE94D00FB36AE /* Sources */,
 				BDCBD91F2EFAE94D00FB36AE /* Frameworks */,
 				BDCBD9202EFAE94D00FB36AE /* Resources */,
+				BDC4BD972F07CDAF00CC18A7 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				BDC4BDC22F07CE5200CC18A7 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				BDCBD9242EFAE94D00FB36AE /* Molyseerr */,
@@ -86,6 +202,9 @@
 				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
+					BDC4BDBA2F07CE5200CC18A7 = {
+						CreatedOnToolsVersion = 26.2;
+					};
 					BDCBD9212EFAE94D00FB36AE = {
 						CreatedOnToolsVersion = 26.2;
 					};
@@ -109,11 +228,19 @@
 			projectRoot = "";
 			targets = (
 				BDCBD9212EFAE94D00FB36AE /* Molyseerr */,
+				BDC4BDBA2F07CE5200CC18A7 /* Molyseerr TopShelf */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		BDC4BDB92F07CE5200CC18A7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BDCBD9202EFAE94D00FB36AE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -124,6 +251,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		BDC4BDB72F07CE5200CC18A7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BDCBD91E2EFAE94D00FB36AE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -133,7 +267,73 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		BDC4BDC22F07CE5200CC18A7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BDC4BDBA2F07CE5200CC18A7 /* Molyseerr TopShelf */;
+			targetProxy = BDC4BDC12F07CE5200CC18A7 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		BDC4BDC62F07CE5200CC18A7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "Molyseerr TopShelf/Molyseerr TopShelf.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 82V4UQQ84J;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Molyseerr TopShelf/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Molyseerr TopShelf";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.molycorp.Molyseerr.Molyseerr-TopShelf";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+			};
+			name = Debug;
+		};
+		BDC4BDC72F07CE5200CC18A7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "Molyseerr TopShelf/Molyseerr TopShelf.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 82V4UQQ84J;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Molyseerr TopShelf/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Molyseerr TopShelf";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.molycorp.Molyseerr.Molyseerr-TopShelf";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+			};
+			name = Release;
+		};
 		BDCBD92B2EFAE94F00FB36AE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -260,11 +460,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Molyseerr/Molyseerr.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 82V4UQQ84J;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Molyseerr/Info.plist;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -272,7 +474,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.molycorp.Sir-Seerr";
+				PRODUCT_BUNDLE_IDENTIFIER = com.molycorp.Molyseerr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -289,11 +491,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Molyseerr/Molyseerr.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 82V4UQQ84J;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Molyseerr/Info.plist;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -301,7 +505,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.molycorp.Sir-Seerr";
+				PRODUCT_BUNDLE_IDENTIFIER = com.molycorp.Molyseerr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -316,6 +520,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		BDC4BDC52F07CE5200CC18A7 /* Build configuration list for PBXNativeTarget "Molyseerr TopShelf" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BDC4BDC62F07CE5200CC18A7 /* Debug */,
+				BDC4BDC72F07CE5200CC18A7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		BDCBD91D2EFAE94D00FB36AE /* Build configuration list for PBXProject "Molyseerr" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

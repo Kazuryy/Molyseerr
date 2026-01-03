@@ -22,6 +22,7 @@ struct RootView: View {
     @StateObject private var configManager = ConfigManager()
     @StateObject private var watchlistManager = WatchlistManager.shared
     @State private var isValidatingSession = true
+    @State private var deepLinkURL: URL?
 
     var body: some View {
         Group {
@@ -58,9 +59,13 @@ struct RootView: View {
                 // Step 3: Main app - Tab navigation (Discover, Movies, TV Shows)
                 MainTabView()
                     .environmentObject(configManager)
+                    .environment(\.deepLinkURL, deepLinkURL)
             }
         }
         .preferredColorScheme(.dark)
+        .onOpenURL { url in
+            handleDeepLink(url)
+        }
         .task {
             // Validate session on app startup (like Seerr web app does)
             await configManager.validateSession()
@@ -71,5 +76,40 @@ struct RootView: View {
                 await watchlistManager.loadWatchlist()
             }
         }
+    }
+
+    // MARK: - Deep Link Handling
+
+    /// Handle deep links from TopShelf
+    /// Format: molyseerr://media/movie/123 or molyseerr://media/tv/456
+    private func handleDeepLink(_ url: URL) {
+        print("🔗 Deep link received: \(url)")
+
+        guard url.scheme == "molyseerr" else {
+            print("❌ Invalid scheme: \(url.scheme ?? "none")")
+            return
+        }
+
+        // Only handle deep links when authenticated
+        guard configManager.isAuthenticated else {
+            print("⚠️ User not authenticated, ignoring deep link")
+            return
+        }
+
+        // Store the URL to be handled by MainTabView
+        deepLinkURL = url
+    }
+}
+
+// MARK: - Deep Link Environment Key
+
+private struct DeepLinkURLKey: EnvironmentKey {
+    static let defaultValue: URL? = nil
+}
+
+extension EnvironmentValues {
+    var deepLinkURL: URL? {
+        get { self[DeepLinkURLKey.self] }
+        set { self[DeepLinkURLKey.self] = newValue }
     }
 }

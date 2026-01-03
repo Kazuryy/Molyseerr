@@ -19,6 +19,7 @@ struct MainTabView: View {
         case series
         case requests
         case search
+        case profile
         case settings
     }
 
@@ -57,6 +58,13 @@ struct MainTabView: View {
                     Label("Search", systemImage: "magnifyingglass")
                 }
                 .tag(TabItem.search)
+                .environmentObject(configManager)
+
+            ProfileView()
+                .tabItem {
+                    Label("Profile", systemImage: "person.circle")
+                }
+                .tag(TabItem.profile)
                 .environmentObject(configManager)
 
             SettingsView()

@@ -162,11 +162,12 @@ struct EpisodeSelector: View {
                 switch tvDetails.metadataProvider {
                 case .tmdb(let tmdbId):
                     print("Fetching episodes from TMDB for season \(seasonNumber) (language: \(userLanguage))")
-                    fetchedEpisodes = try await TMDBService.shared.fetchSeasonDetails(
+                    let tmdbEpisodes = try await TMDBService.shared.fetchSeasonDetails(
                         tvID: tmdbId,
                         seasonNumber: seasonNumber,
                         language: userLanguage
                     )
+                    fetchedEpisodes = tmdbEpisodes.map { Episode(from: $0) }
                 case .tvdb(let tvdbId):
                     print("Fetching episodes from TVDB (id: \(tvdbId)) for season \(seasonNumber) (language: \(userLanguage))")
                     do {
@@ -178,11 +179,12 @@ struct EpisodeSelector: View {
                     } catch {
                         // Fallback to TMDB if TVDB fails
                         print("TVDB failed, falling back to TMDB: \(error)")
-                        fetchedEpisodes = try await TMDBService.shared.fetchSeasonDetails(
+                        let tmdbEpisodes = try await TMDBService.shared.fetchSeasonDetails(
                             tvID: tvDetails.id,
                             seasonNumber: seasonNumber,
                             language: userLanguage
                         )
+                        fetchedEpisodes = tmdbEpisodes.map { Episode(from: $0) }
                     }
                 }
 

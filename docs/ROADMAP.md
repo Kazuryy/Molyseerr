@@ -1,7 +1,7 @@
 # Molyseerr - Roadmap de développement
 
-**Mise à jour:** 24 Décembre 2025
-**Version actuelle:** 0.1.0 (MVP en cours)
+**Mise à jour:** 3 Janvier 2026
+**Version actuelle:** 0.2.0 (MVP avancé)
 
 ---
 
@@ -14,90 +14,107 @@ Client tvOS natif pour Overseerr/Jellyseerr (Seerr) qui combine:
 
 ---
 
-## ✅ Phase 0: Foundation (COMPLÉTÉ)
+## ✅ Réalisations récentes
 
-**Status:** ✅ Done
-
-- [x] Architecture MVVM mise en place
-- [x] Data layer (Models, Services, API client)
-- [x] Configuration .env pour dev
-- [x] Design reference document (APPLE_TV_DESIGN_REFERENCE.md)
-- [x] Intégration Kingfisher 8.6.2
-- [x] TrendingViewModel fonctionnel
-- [x] HomeViewModel avec 4 sliders (Trending, Popular Movies/TV, Upcoming)
-- [x] Composants de base (MediaCardView, HorizontalMediaRow, HeroBannerView)
-- [x] Hero banner Apple TV+ style
-- [x] Navigation et layout de base
-
-**Ce qui marche:**
-- App se connecte à Seerr via API
-- Charge et affiche le contenu trending/popular
-- Hero banner avec gradient et boutons
-- Rows horizontales scrollables
-- Focus effects sur les cards
-
-**Ce qui manque:**
-- Images réelles (placeholders pour l'instant)
-- Badges MediaInfo (Available, Pending, etc.)
-- Navigation vers détails
-- Gestion des requêtes
+### Phase 0 & 1: Foundation + Core Features (COMPLÉTÉ)
+- [x] Architecture MVVM complète
+- [x] Intégration Kingfisher pour images
+- [x] Hero banner avec trending content
+- [x] Page Discover avec sliders dynamiques
+- [x] Page MediaDetail complète avec actions
+- [x] System de requêtes fonctionnel
+- [x] Watchlist management
+- [x] Page Requests avec filtres
+- [x] Page Search
+- [x] Navigation TabView
+- [x] **TopShelf Extension** (Janvier 2026)
+  - [x] Configuration et setup
+  - [x] Cache d'images optimisé avec ImageIO
+  - [x] Hero carousel avec backdrops
+  - [x] Deep linking vers l'app
+  - [x] Gestion mémoire pour device physique
 
 ---
 
-## 🚀 Phase 1: Core UX (PRIORITÉ HAUTE)
+## 🚧 Tâches en cours / À venir
 
-**Objectif:** Rendre l'app utilisable pour la découverte de contenu
+### Configuration & Optimisation
 
-### 1.1 Images & Visuels (⭐ CRITIQUE)
-**Pourquoi en premier?** Sans images, impossible de tester le vrai look & feel
+- [ ] **Configuration du Hero de la page Discover**
+  - Identifier la source des données (trending vs featured)
+  - Permettre customisation via settings
+  - Support multi-sources (Trending, Popular, Watchlist)
 
-- [ ] Intégrer Kingfisher pour charger les posters TMDB
-- [ ] Ajouter backdrop images au hero banner
-- [ ] Gérer les états de chargement des images (skeleton, fade-in)
-- [ ] Fallback pour images manquantes
-- [ ] Cache des images optimisé
+- [ ] **Mappage TopShelf vers éléments de l'app**
+  - Deep linking fonctionnel (molyseerr://media/tv/{id})
+  - Navigation directe vers MediaDetail depuis TopShelf
+  - Sync des settings TopShelf avec l'app principale
 
-**Estimation:** 1-2 jours
-**Fichiers:** `MediaCardView.swift`, `HeroBannerView.swift`, nouveau `ImageLoader.swift`
+- [ ] **Optimisation de la page Discover**
+  - Performance du chargement des sliders
+  - Lazy loading intelligent
+  - Cache des données discover
+  - Gestion des erreurs réseau améliorée
+
+- [ ] **Clean du lancement de l'app**
+  - Splash screen optimisé
+  - Loading states cohérents
+  - Gestion des premiers lancements
+  - Vérification de la connexion serveur
+
+### Permissions & Sécurité
+
+- [ ] **Support des permissions basé sur l'API**
+  - Détection du niveau de permission utilisateur
+  - UI adaptée selon les droits (admin, user, request-only)
+  - Gestion des actions non autorisées
+  - Messages d'erreur contextuels
+
+### Internationalisation
+
+- [ ] **Support du multi-language**
+  - Localisation FR/EN minimum
+  - String catalogs SwiftUI
+  - Traductions des genres/catégories
+  - Format des dates selon locale
+
+- [ ] **Support des régions/langues Seerr**
+  - Sync avec les préférences Seerr WebApp
+  - Découverte de contenu selon région
+  - Affichage du contenu dans la langue préférée
+
+### UI/UX Improvements
+
+- [ ] **Clean de la page Profile**
+  - Réorganisation des informations
+  - Stats utilisateur (requests, watchlist size)
+  - Historique d'activité
+  - Design cohérent avec Apple TV+
+
+- [ ] **Clean de la page Details**
+  - Optimisation du layout
+  - Better loading states
+  - Animations améliorées
+  - Cast & Crew section enrichie
+
+- [ ] **Amélioration de la page Login**
+  - Sélection de l'user si déjà enregistré
+  - Option pour retirer un user
+  - Multiple profiles management
+  - Remember me option
+  - QR code login (optionnel)
+
+### Navigation & Structure
+
+- [ ] **Réorganisation du menu**
+  - Déplacer Profile en haut du menu burger
+  - Renommer "TVShows" → "Series"
+  - Icônes cohérentes
+  - Keyboard shortcuts
 
 ---
 
-### 1.2 Page Détails (⭐ CRITIQUE)
-**Pourquoi?** Point d'entrée vers les actions (request, watchlist)
-
-- [ ] Créer `MediaDetailView.swift`
-- [ ] Créer `MediaDetailViewModel.swift`
-- [ ] Navigation card → detail (push navigation)
-- [ ] Afficher infos complètes (synopsis, cast, genres, runtime, rating)
-- [ ] Backdrop full-screen en arrière-plan
-- [ ] Tabs: Overview / Episodes (pour TV) / Cast / Similar
-
-**Estimation:** 2-3 jours
-**Dépend de:** 1.1 (Images)
-
----
-
-### 1.3 Actions utilisateur (⭐ HAUTE)
-**Pourquoi?** Cœur de la valeur ajoutée de Seerr
-
-Dans MediaDetailView, implémenter:
-- [ ] Bouton "Request" (avec logique Available/Pending/Processing)
-- [ ] Bouton "Add to Watchlist"
-- [ ] Afficher badges de status (Available, Pending, etc.)
-- [ ] Gestion des erreurs de requête
-- [ ] Confirmation visuelle après action
-
-**Estimation:** 2 jours
-**Fichiers:** `MediaDetailView.swift`, nouveau `RequestManager.swift`
-
----
-
-## 📱 Phase 2: Navigation & Structure (PRIORITÉ MOYENNE)
-
-### 2.1 TabView Navigation
-**Pourquoi?** Architecture standard tvOS pour plusieurs sections
-
-- [ ] Remplacer root par `TabView`
+## 🎨 Phase 3: Features avancées (EN COURS)
 - [ ] Tab 1: Home (actuel)
 - [ ] Tab 2: Search
 - [ ] Tab 3: Requests (mes requêtes)
@@ -181,19 +198,53 @@ Dans MediaDetailView, implémenter:
 
 ---
 
-### 3.4 Slider Configuration Dynamique
+### 3.4 TopShelf Extension (⚠️ DEBUGGING EN COURS)
+**Status:** Extension créée mais écran noir sur device physique
+
+**Problème identifié:**
+- Contrainte mémoire tvOS : ~15-20 MB pour extensions
+- Images décompressées (1280×720×4 bytes) = 3.5 MB par image
+- 4 images = 14 MB → dépasse la limite → iOS tue silencieusement l'extension
+
+**Solution implémentée:**
+- ImageIO thumbnailing au lieu de UIGraphics
+- Génération directe de miniatures sans charger image complète
+- Réduction RAM : 500 KB au lieu de 7 MB par image
+- Compression JPEG 90% pour qualité maximale
+
+**Tâches:**
+- [x] Setup extension TopShelf
+- [x] Configuration entitlements et permissions réseau
+- [x] Cache d'images optimisé (ImageIO)
+- [x] Hero carousel avec backdrops
+- [x] Deep linking molyseerr://
+- [ ] **Validation sur device physique** (test final en cours)
+- [ ] Settings synchronisés (mode Hero vs Sectioned)
+- [ ] Support multiple sources (Trending, Watchlist, Popular)
+
+**Fichiers clés:**
+- `ContentProvider.swift` - Génération du contenu TopShelf
+- `TopShelfImageCache.swift` - Optimisation mémoire avec ImageIO
+- `TopShelfSettings.swift` - Configuration partagée
+
+**Estimation restante:** 1-2 jours pour validation finale
+
+---
+
+### 3.5 Slider Configuration Dynamique
 **Pourquoi?** Synchronisation avec Seerr web
 
 - [ ] API pour récupérer config des sliders (enabled/disabled)
 - [ ] Cacher les sliders désactivés
 - [ ] Ordre personnalisable
+- [ ] Configuration persistée
 
 **Estimation:** 2 jours
 **Dépend de:** API Seerr côté serveur
 
 ---
 
-### 3.5 Intégration Jellyfin/Swiftfin - Bouton Play
+### 3.6 Intégration Jellyfin/Swiftfin - Bouton Play
 **Pourquoi?** Lancer la lecture directe depuis Molyseerr vers Swiftfin
 
 **Context:** Swiftfin a une infrastructure de deep linking partiellement implémentée mais incomplète
@@ -267,93 +318,94 @@ Dans MediaDetailView, implémenter:
 
 ---
 
-## 📊 Priorités suggérées (ordre recommandé)
+## 📊 Sprint actuel : Polish & Optimisation (Janvier 2026)
 
-### Sprint 1: MVP utilisable (5-7 jours)
-1. **Images (1.1)** - 2 jours → Rendre l'app visuellement correcte
-2. **Page Détails (1.2)** - 3 jours → Navigation fonctionnelle
-3. **Actions Request (1.3)** - 2 jours → Valeur ajoutée principale
+### Objectifs prioritaires
 
-**Résultat:** App permettant de découvrir et requêter du contenu
+**1. Finalisation TopShelf** (1-2 jours)
+- Validation écran noir sur device physique
+- Test de la solution ImageIO optimisée
+- Configuration des sources (Trending/Watchlist/Popular)
+- Settings synchronisés entre app et extension
 
----
+**2. Configuration & Clean** (2-3 jours)
+- Configuration Hero Discover (source de données)
+- Optimisation page Discover (performance)
+- Clean lancement app (splash, loading states)
+- Clean page Details (layout, animations)
+- Clean page Profile (stats, historique)
 
-### Sprint 2: Structure complète (4-5 jours)
-4. **TabView Navigation (2.1)** - 1 jour
-5. **Page Search (2.2)** - 2 jours
-6. **Page Requests (2.3)** - 2 jours
+**3. UX Improvements** (2-3 jours)
+- Page Login améliorée (multi-users, remember me)
+- Réorganisation menu (Profile en haut, TVShows→Series)
+- Support permissions API
+- Gestion erreurs réseau cohérente
 
-**Résultat:** App complète avec toutes les sections principales
+**4. Internationalisation** (3-4 jours)
+- Multi-language (FR/EN minimum)
+- Sync régions/langues avec Seerr
+- Localisation genres/catégories
+- Format dates selon locale
 
----
-
-### Sprint 3: Polish (3-5 jours)
-7. **Settings (2.4)** - 1 jour
-8. **Continue Watching (3.2)** - 2 jours
-9. **Hero Banner avancé (3.1)** - 2 jours
-
-**Résultat:** App polie, prête pour usage quotidien
-
----
-
-### Sprint 4+: Features avancées
-10. Login/Auth (4.1)
-11. Genres & Filtres (3.3)
-12. Slider Config (3.4)
-13. Multi-profils (4.2)
+**Résultat attendu:** App stable, performante et prête pour usage quotidien
 
 ---
 
-## 🎯 Recommandation: Par où commencer MAINTENANT?
+## 🎯 Prochaines étapes (Post-Sprint actuel)
 
-### Option A: Quick Win visuel (RECOMMANDÉ)
-**Prochaine étape:** Implémenter les images (1.1)
+### Sprint suivant: Features avancées
+1. **Continue Watching** - Row dédiée avec progress
+2. **Hero Banner amélioré** - Auto-rotate, trailers
+3. **Genres & Filtres** - Page genres, filtres avancés
+4. **Jellyfin Integration** - Bouton Play vers Swiftfin
 
-**Pourquoi?**
-- Impact visuel immédiat
-- Permet de voir le vrai look de l'app
-- Nécessaire pour toutes les features suivantes
-- Relativement simple (Kingfisher fait le gros du travail)
-
-**Fichiers à créer/modifier:**
-- Nouveau: `Molyseerr/Utils/ImageLoader.swift`
-- Modifier: `MediaCardView.swift` (ajouter AsyncImage)
-- Modifier: `HeroBannerView.swift` (backdrop image)
+### Backlog long terme
+- Login/Auth sécurisé (Keychain, QR code)
+- Multi-profils
+- Tests unitaires et UI
+- App Store preparation
 
 ---
 
-### Option B: Feature complète
-**Prochaine étape:** Page Détails (1.2)
+## 📝 Notes importantes
 
-**Pourquoi?**
-- Permet de tester la navigation
-- Débloque les actions (request, watchlist)
-- Composant central de l'app
+### TopShelf - Leçons apprises (Janvier 2026)
 
----
+**Problème résolu:** Écran noir sur Apple TV physique
+- **Cause:** Dépassement limite mémoire (15-20 MB pour extensions tvOS)
+- **Solution:** ImageIO thumbnailing au lieu de UIGraphics
+- **Impact:** 95% réduction RAM (500 KB vs 7 MB par image)
+- **Qualité:** Identique à l'original avec compression 90%
 
-## 🤔 Ma recommandation
+**Points clés tvOS:**
+- Simulateur ≠ Device physique (limite RAM très différente)
+- Extensions tuées silencieusement sans log d'erreur
+- ImageIO = méthode recommandée par Apple pour thumbnails
+- `kCGImageSourceThumbnailMaxPixelSize` crucial pour mémoire
 
-**Commence par 1.1 (Images)** pour ces raisons:
+### Décisions architecturales
 
-1. **Feedback visuel rapide** - Tu verras immédiatement si le design fonctionne
-2. **Bloquant pour la suite** - Difficile de tester les détails sans images
-3. **Relativement facile** - Kingfisher + TMDB image URLs = simple
-4. **Motivation** - Voir l'app prendre vie avec de vraies affiches
+**Images:**
+- Source: w1280 de TMDB
+- Optimisation: Thumbnail 1280px max via ImageIO
+- Cache: Extension propre (pas App Group pour simplicité)
+- Format: JPEG 90% pour balance qualité/taille
 
-Une fois les images intégrées, tu enchaînes direct sur la page détails (1.2) puis les actions (1.3).
-
-**En ~1 semaine, tu as un MVP fonctionnel!**
-
----
-
-## 📝 Notes
-
-- **Temps estimés** = pour une personne avec ton niveau (intermédiaire Swift/SwiftUI)
-- **Dépendances** clairement indiquées
-- **Flexibilité** = Tu peux sauter des features "nice-to-have" si besoin
-- **Tests** = Peuvent être faits au fur et à mesure ou à la fin
+**Navigation:**
+- Deep linking: `molyseerr://media/{type}/{id}`
+- TabView principal avec 4 sections
+- Hero banner source configurable
 
 ---
 
-**Question pour toi:** Tu veux qu'on attaque les images maintenant, ou tu préfères une autre priorité?
+## 🤔 Questions ouvertes
+
+1. **Continue Watching:** Seerr a-t-il un endpoint dédié ou faut-il le construire?
+2. **Jellyfin Play:** Attendre Swiftfin deep linking ou implémenter autre solution?
+3. **Multi-language:** Traductions professionnelles ou communautaires?
+4. **App Store:** Beta TestFlight avant release public?
+
+---
+
+**Dernière mise à jour:** 3 Janvier 2026  
+**Prochaine review:** Après validation TopShelf sur device

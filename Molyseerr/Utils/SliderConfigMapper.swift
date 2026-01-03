@@ -23,8 +23,9 @@ struct SliderConfigMapper {
             return .media(filter: "allavailable", sort: "mediaAdded", take: 20)
 
         case .recentRequests:
-            // TODO: Requires special handling - need to extract media from requests
-            return .error("Recent Requests slider requires additional implementation")
+            // Recent Requests: Shows last 10 media requests
+            // Uses /api/v1/request?filter=all&sort=modified&take=10
+            return .request(filter: "all", sort: "modified", take: 10)
 
         case .watchlist:
             return .watchlist
