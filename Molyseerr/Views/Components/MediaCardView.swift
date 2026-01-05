@@ -36,7 +36,8 @@ struct MediaCardView: View {
         .buttonStyle(.card)
         .focused($isFocused)
         .scaleEffect(isFocused ? focusScale : 1.0)
-        .shadow(radius: isFocused ? 20 : 4, y: isFocused ? 10 : 2)
+        .shadow(radius: isFocused ? 10 : 2, y: isFocused ? 5 : 1)
+        .compositingGroup()
         .animation(.easeInOut(duration: 0.15), value: isFocused)
     }
 
@@ -48,14 +49,18 @@ struct MediaCardView: View {
             if let posterURL = TMDBImageHelper.posterURL(path: item.posterPath) {
                 KFImage(posterURL)
                     .placeholder {
-                        // Placeholder while loading
+                        // Skeleton shimmer placeholder while loading
                         RoundedRectangle(cornerRadius: cornerRadius)
-                            .fill(Color.gray.opacity(0.3))
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(width: cardWidth, height: cardHeight)
                             .overlay(
-                                ProgressView()
-                                    .scaleEffect(1.5)
+                                RoundedRectangle(cornerRadius: cornerRadius)
+                                    .fill(Color.gray.opacity(0.3))
+                                    .shimmer()
                             )
                     }
+                    .setProcessor(DownsamplingImageProcessor(size: CGSize(width: cardWidth * 2, height: cardHeight * 2)))
+                    .cacheMemoryOnly()
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: cardWidth, height: cardHeight)

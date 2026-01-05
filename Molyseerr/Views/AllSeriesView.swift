@@ -182,8 +182,9 @@ struct AllSeriesView: View {
                 GridItem(.flexible(), spacing: 50),
                 GridItem(.flexible(), spacing: 50)
             ], spacing: 50) {
-                ForEach(viewModel.series, id: \.id) { mediaResult in
+                ForEach(Array(viewModel.series.enumerated()), id: \.offset) { index, mediaResult in
                     MediaCardView(item: mediaResult)
+                        .id("series-\(index)")  // Unique ID to avoid duplicates
                         .onAppear {
                             // Load more when approaching the end
                             if mediaResult.id == viewModel.series.last?.id {
@@ -206,7 +207,9 @@ struct AllSeriesView: View {
                     .gridCellColumns(6)
                 }
             }
-            .padding(48)
+            .padding(.horizontal, 48)
+            .padding(.top, 78)  // Extra top padding (48 + 30) to prevent clipping on focus
+            .padding(.bottom, 48)
         }
     }
 }

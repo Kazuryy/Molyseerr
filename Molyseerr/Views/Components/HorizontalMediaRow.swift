@@ -12,15 +12,16 @@ import SwiftUI
 struct HorizontalMediaRow: View {
     let title: String
     let items: [MediaResult]
+    var isLoading: Bool = false  // Show skeleton loaders when loading
 
     // MARK: - Constants
     private let cardSpacing: CGFloat = 40
     private let horizontalPadding: CGFloat = 60  // Balanced for sidebar layout
     private let verticalPadding: CGFloat = 40  // Space for focus scale (10% of 375px card)
+    private let skeletonCount: Int = 6  // Number of skeleton cards to show
 
     var body: some View {
-        let _ = print("🎨 HorizontalMediaRow rendering: \(title) with \(items.count) items")
-        return VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 20) {
             // Section title
             Text(title)
                 .font(.title2)
@@ -28,11 +29,20 @@ struct HorizontalMediaRow: View {
                 .foregroundColor(.white)
                 .padding(.leading, horizontalPadding)
 
-            // Horizontal scroll
+            // Horizontal scroll with lazy loading or skeletons
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: cardSpacing) {
-                    ForEach(items) { item in
-                        MediaCardView(item: item)
+                LazyHStack(spacing: cardSpacing) {
+                    if isLoading && items.isEmpty {
+                        // Show skeleton loaders while loading
+                        ForEach(0..<skeletonCount, id: \.self) { _ in
+                            SkeletonCardView()
+                        }
+                    } else {
+                        // Show actual content - use media ID for stable identity during refresh
+                        ForEach(items, id: \.id) { item in
+                            MediaCardView(item: item)
+                                .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                        }
                     }
                 }
                 .padding(.horizontal, horizontalPadding)

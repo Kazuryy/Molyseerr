@@ -31,15 +31,16 @@ struct SmartMediaGrid: View {
     }
 
     var body: some View {
-        let rows = stride(from: 0, to: items.count, by: columnsPerRow).map { rowIndex in
-            Array(items[rowIndex..<min(rowIndex + columnsPerRow, items.count)])
-        }
+        // Calculate total rows needed
+        let totalRows = (items.count + columnsPerRow - 1) / columnsPerRow
 
-        VStack(spacing: spacing) {
-            ForEach(Array(rows.enumerated()), id: \.offset) { _, rowItems in
+        LazyVStack(spacing: spacing) {
+            ForEach(0..<totalRows, id: \.self) { rowIndex in
+                let rowItems = getRowItems(rowIndex: rowIndex)
                 HStack(spacing: spacing) {
-                    ForEach(rowItems) { item in
+                    ForEach(Array(rowItems.enumerated()), id: \.offset) { colIndex, item in
                         MediaCardView(item: item)
+                            .id("\(rowIndex)-\(colIndex)")  // Unique ID combining row and column
                             .onAppear {
                                 onItemAppear?(item)
                             }
@@ -57,6 +58,14 @@ struct SmartMediaGrid: View {
             }
         }
         .padding(.horizontal, horizontalPadding)
+    }
+
+    /// Get items for a specific row (computed on-demand for lazy loading)
+    private func getRowItems(rowIndex: Int) -> [MediaResult] {
+        let startIndex = rowIndex * columnsPerRow
+        let endIndex = min(startIndex + columnsPerRow, items.count)
+        guard startIndex < items.count else { return [] }
+        return Array(items[startIndex..<endIndex])
     }
 }
 

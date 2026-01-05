@@ -57,9 +57,9 @@ enum TMDBImageHelper {
         return imageURL(path: path, size: size)
     }
 
-    /// Get backdrop URL for hero banner (original size as per TECH_RULES.md)
+    /// Get backdrop URL for hero banner (w1280 optimized for tvOS performance)
     static func backdropURL(path: String?) -> URL? {
-        return imageURL(path: path, size: .original)
+        return imageURL(path: path, size: .backdropLarge)
     }
 
     /// Get backdrop URL with custom size

@@ -8,7 +8,7 @@
 import SwiftUI
 import Combine
 
-/// TopShelf slider configuration view
+/// TopShelf slider configuration views
 struct TopShelfConfigView: View {
 
     // MARK: - State

@@ -184,6 +184,7 @@ struct AllMoviesView: View {
                         }
                     }
                 }
+                .padding(.top, 30)  // Prevent top row from being clipped when focused
 
                 // Loading indicator at bottom
                 if viewModel.isLoadingMore {

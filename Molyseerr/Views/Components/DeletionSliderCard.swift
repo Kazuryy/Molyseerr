@@ -81,7 +81,8 @@ struct DeletionSliderCard: View {
         .focusable()
         .focused($isFocused)
         .scaleEffect(isFocused ? 1.05 : 1.0)
-        .shadow(color: isFocused ? .white.opacity(0.3) : .clear, radius: 20)
+        .shadow(color: isFocused ? .white.opacity(0.2) : .clear, radius: 10)
+        .compositingGroup()
         .animation(.easeInOut(duration: 0.2), value: isFocused)
     }
 

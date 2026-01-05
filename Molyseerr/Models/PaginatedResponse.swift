@@ -90,18 +90,14 @@ enum MediaResult: Codable, Identifiable, Hashable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
         if let mediaTypeString = try? container.decode(String.self, forKey: .mediaType) {
-            print("🔍 MediaResult decoding - found media_type: \(mediaTypeString)")
-
             // Now decode the full object based on media_type
             let singleValueContainer = try decoder.singleValueContainer()
 
             if mediaTypeString == "tv" {
                 let tv = try singleValueContainer.decode(TVResult.self)
-                print("✅ Decoded as TV: \(tv.name)")
                 self = .tv(tv)
             } else if mediaTypeString == "movie" {
                 let movie = try singleValueContainer.decode(MovieResult.self)
-                print("✅ Decoded as Movie: \(movie.displayTitle)")
                 self = .movie(movie)
             } else {
                 throw DecodingError.dataCorruptedError(
@@ -112,14 +108,11 @@ enum MediaResult: Codable, Identifiable, Hashable {
             }
         } else {
             // Fallback: No media_type field, try to decode as MovieResult then TVResult
-            print("⚠️ MediaResult decoding - NO media_type field found, using fallback")
             let singleValueContainer = try decoder.singleValueContainer()
 
             if let movie = try? singleValueContainer.decode(MovieResult.self) {
-                print("🔄 Fallback: Decoded as Movie: \(movie.displayTitle)")
                 self = .movie(movie)
             } else if let tv = try? singleValueContainer.decode(TVResult.self) {
-                print("🔄 Fallback: Decoded as TV: \(tv.name)")
                 self = .tv(tv)
             } else {
                 throw DecodingError.dataCorruptedError(

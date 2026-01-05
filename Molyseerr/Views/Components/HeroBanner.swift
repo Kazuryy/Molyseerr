@@ -98,11 +98,14 @@ struct HeroBanner: View {
         // Backdrop image only (gradient is separate to avoid flicker during transitions)
         Group {
             if let backdropPath = item.backdropPath,
-               let backdropURL = TMDBImageHelper.backdropURL(path: backdropPath, size: .original) {
+               let backdropURL = TMDBImageHelper.backdropURL(path: backdropPath) {
                 KFImage(backdropURL)
                     .placeholder {
                         Color(red: 0.1, green: 0.12, blue: 0.16)
+                            .frame(width: width, height: bannerHeight)
                     }
+                    .setProcessor(DownsamplingImageProcessor(size: CGSize(width: width * 2, height: bannerHeight * 2)))
+                    .cacheMemoryOnly()
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: width, height: bannerHeight)
