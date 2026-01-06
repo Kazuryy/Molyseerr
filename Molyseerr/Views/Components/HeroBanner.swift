@@ -82,7 +82,10 @@ struct HeroBanner: View {
         }
         .frame(height: bannerHeight)
         .task {
-            await loadWatchlistStatus()
+            // Load watchlist status asynchronously without blocking banner display
+            Task(priority: .low) {
+                await loadWatchlistStatus()
+            }
         }
         .onAppear {
             startRotation()
@@ -104,8 +107,8 @@ struct HeroBanner: View {
                         Color(red: 0.1, green: 0.12, blue: 0.16)
                             .frame(width: width, height: bannerHeight)
                     }
-                    .setProcessor(DownsamplingImageProcessor(size: CGSize(width: width * 2, height: bannerHeight * 2)))
-                    .cacheMemoryOnly()
+                    .setProcessor(DownsamplingImageProcessor(size: CGSize(width: width * 1.5, height: bannerHeight * 1.5)))
+                    .cacheOriginalImage()  // Enable disk cache for better memory management
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: width, height: bannerHeight)

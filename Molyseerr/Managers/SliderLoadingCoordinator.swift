@@ -13,7 +13,7 @@ actor SliderLoadingCoordinator {
     static let shared = SliderLoadingCoordinator()
 
     private var activeLoads = 0
-    private let maxConcurrentLoads = 6  // Increased from 3 to 6 for better performance
+    private let maxConcurrentLoads = 8  // Optimized for tvOS network constraints (was 12)
     private var waitingQueue: [CheckedContinuation<Void, Never>] = []
 
     // Track initial preload progress

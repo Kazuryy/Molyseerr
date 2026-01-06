@@ -30,6 +30,19 @@ enum MediaResult: Codable, Identifiable, Hashable {
         }
     }
 
+    // MARK: - Equatable Optimization
+    // Custom equality check that only compares ID to prevent unnecessary re-renders
+    // This is critical for tvOS performance - without it, SwiftUI compares all properties
+    // and causes massive re-renders during background refreshes
+    static func == (lhs: MediaResult, rhs: MediaResult) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    // Custom hash implementation to match Equatable optimization
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
     var mediaType: MediaType {
         switch self {
         case .movie:

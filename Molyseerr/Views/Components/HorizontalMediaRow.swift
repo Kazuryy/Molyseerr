@@ -29,28 +29,43 @@ struct HorizontalMediaRow: View {
                 .foregroundColor(.white)
                 .padding(.leading, horizontalPadding)
 
-            // Horizontal scroll with lazy loading or skeletons
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: cardSpacing) {
-                    if isLoading && items.isEmpty {
-                        // Show skeleton loaders while loading
-                        ForEach(0..<skeletonCount, id: \.self) { _ in
-                            SkeletonCardView()
-                        }
-                    } else {
-                        // Show actual content - use media ID for stable identity during refresh
-                        ForEach(items, id: \.id) { item in
-                            MediaCardView(item: item)
-                                .transition(.opacity.combined(with: .scale(scale: 0.95)))
-                        }
-                    }
+            // Performant horizontal scroll using UICollectionView
+            // Fixes tvOS 18 _UIFocusRegionEvaluator bug by using UIKit instead of SwiftUI LazyHStack
+            if isLoading && items.isEmpty {
+                // Skeleton loading state
+                PerformantHStack(
+                    items: Array(0..<skeletonCount).map { SkeletonItem(id: $0) },
+                    itemWidth: 250,
+                    itemHeight: 375,
+                    spacing: cardSpacing,
+                    horizontalPadding: horizontalPadding,
+                    verticalPadding: verticalPadding
+                ) { _ in
+                    SkeletonCardView()
                 }
-                .padding(.horizontal, horizontalPadding)
-                .padding(.vertical, verticalPadding)  // Prevent clipping on focus
+                .frame(height: 375 + (verticalPadding * 2))
+            } else {
+                // Actual content with real UICollectionView
+                PerformantHStack(
+                    items: items,
+                    itemWidth: 250,
+                    itemHeight: 375,
+                    spacing: cardSpacing,
+                    horizontalPadding: horizontalPadding,
+                    verticalPadding: verticalPadding
+                ) { item in
+                    MediaCardViewSimple(item: item)
+                }
+                .frame(height: 375 + (verticalPadding * 2))
             }
-            .scrollClipDisabled()  // Allow focus scale to overflow
         }
     }
+}
+
+// MARK: - Skeleton Item (for loading state)
+
+private struct SkeletonItem: Identifiable, Hashable {
+    let id: Int
 }
 
 // MARK: - Preview

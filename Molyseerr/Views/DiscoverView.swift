@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 /// Discover page - Dynamic slider system matching Seerr web app
 /// Fetches slider configuration from server and displays enabled sliders in order
@@ -19,44 +20,42 @@ struct DiscoverView: View {
     @State private var selectedNetwork: Company?
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color.Seerr.background.ignoresSafeArea()
+        ZStack {
+            Color.Seerr.background.ignoresSafeArea()
 
-                Group {
-                    if viewModel.isLoading && viewModel.allSliders.isEmpty {
-                        // Initial loading state
-                        loadingView
-                            .onAppear { print("📍 DiscoverView: Showing LOADING view") }
-                    } else if let errorMessage = viewModel.errorMessage {
-                        // Error state
-                        errorView(message: errorMessage)
-                            .onAppear { print("📍 DiscoverView: Showing ERROR view - \(errorMessage)") }
-                    } else if viewModel.enabledSliders.isEmpty {
-                        // Empty state (no enabled sliders)
-                        emptyView
-                            .onAppear { print("📍 DiscoverView: Showing EMPTY view - enabledSliders count: \(viewModel.enabledSliders.count)") }
-                    } else {
-                        // Display enabled sliders
-                        sliderList
-                            .onAppear { print("📍 DiscoverView: Showing SLIDER LIST with \(viewModel.enabledSliders.count) sliders") }
-                    }
+            Group {
+                if viewModel.isLoading && viewModel.allSliders.isEmpty {
+                    // Initial loading state
+                    loadingView
+                        .onAppear { print("📍 DiscoverView: Showing LOADING view") }
+                } else if let errorMessage = viewModel.errorMessage {
+                    // Error state
+                    errorView(message: errorMessage)
+                        .onAppear { print("📍 DiscoverView: Showing ERROR view - \(errorMessage)") }
+                } else if viewModel.enabledSliders.isEmpty {
+                    // Empty state (no enabled sliders)
+                    emptyView
+                        .onAppear { print("📍 DiscoverView: Showing EMPTY view - enabledSliders count: \(viewModel.enabledSliders.count)") }
+                } else {
+                    // Display enabled sliders
+                    sliderList
+                        .onAppear { print("📍 DiscoverView: Showing SLIDER LIST with \(viewModel.enabledSliders.count) sliders") }
                 }
             }
-            .navigationDestination(item: $selectedStudio) { studio in
-                StudioDetailView(studio: studio)
-            }
-            .navigationDestination(item: $selectedNetwork) { network in
-                NetworkDetailView(network: network)
-            }
-            .navigationDestination(for: MediaResult.self) { mediaResult in
-                MediaDetailView(mediaResult: mediaResult)
-            }
-            .task {
-                // Load slider configuration and watchlist when view appears
-                await watchlistManager.loadWatchlist()
-                await viewModel.fetchSliders()
-            }
+        }
+        .navigationDestination(item: $selectedStudio) { studio in
+            StudioDetailView(studio: studio)
+        }
+        .navigationDestination(item: $selectedNetwork) { network in
+            NetworkDetailView(network: network)
+        }
+        .navigationDestination(for: MediaResult.self) { mediaResult in
+            MediaDetailView(mediaResult: mediaResult)
+        }
+        .task {
+            // Load slider configuration and watchlist when view appears
+            await watchlistManager.loadWatchlist()
+            await viewModel.fetchSliders()
         }
     }
 
@@ -133,20 +132,21 @@ struct DiscoverView: View {
     /// Dynamic slider list with hero banner
     private var sliderList: some View {
         ScrollView {
-            VStack(spacing: 0) {
+            // Use LazyVStack for the entire content to improve vertical scroll performance
+            LazyVStack(spacing: 0, pinnedViews: []) {
                 // Hero Banner (using TMDB trending API) - fullscreen edge-to-edge
                 HeroBannerRow()
                     .ignoresSafeArea(edges: [.top, .leading, .trailing])
+                    .id("hero-banner")  // Stable ID for better performance
 
-                // Regular slider rows - Lazy to improve performance
-                LazyVStack(spacing: 0) {
-                    ForEach(viewModel.enabledSliders) { slider in
-                        DiscoverSliderRow(
-                            slider: slider,
-                            selectedStudio: $selectedStudio,
-                            selectedNetwork: $selectedNetwork
-                        )
-                    }
+                // Regular slider rows - Each slider loads independently
+                ForEach(viewModel.enabledSliders) { slider in
+                    DiscoverSliderRow(
+                        slider: slider,
+                        selectedStudio: $selectedStudio,
+                        selectedNetwork: $selectedNetwork
+                    )
+                    .id(slider.id)  // Stable ID per slider for better diffing
                 }
             }
         }
@@ -291,8 +291,10 @@ struct DiscoverSliderRow: View {
             isLoading = false
 
             // Refresh in background without blocking UI
-            Task.detached(priority: .background) {
-                await self.refreshSliderContent()
+            // Note: Using Task (not detached) to properly capture struct's context
+            // This allows the task to be cancelled when the view disappears
+            Task(priority: .background) {
+                await refreshSliderContent()
             }
             return
         }
@@ -378,11 +380,9 @@ struct DiscoverSliderRow: View {
             // Fetch fresh content using shared service
             let freshItems = try await DiscoverContentService.shared.fetchContentForSlider(slider)
 
-            // Update UI on main actor with smooth animation
+            // Update UI on main actor without animation (prevents cards from moving around)
             await MainActor.run {
-                withAnimation(.easeInOut(duration: 0.4)) {
-                    self.items = freshItems
-                }
+                self.items = freshItems
                 self.lastRefreshTime = Date()
             }
 
