@@ -23,11 +23,9 @@ struct SearchView: View {
 
     // MARK: - Body
     var body: some View {
-        NavigationStack {
-            contentView
-                .background(Color.Seerr.background)
-                .navigationBarHidden(true)
-        }
+        contentView
+            .background(Color.Seerr.background)
+            .navigationBarHidden(true)
     }
 
     // MARK: - Content View

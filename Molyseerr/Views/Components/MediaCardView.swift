@@ -24,6 +24,9 @@ struct MediaCardView: View {
     var body: some View {
         NavigationLink {
             MediaDetailView(mediaResult: item)
+                .onAppear {
+                    print("🎯 NavigationLink: Navigating to detail page for '\(item.title)'")
+                }
         } label: {
             VStack(spacing: 0) {
                 // Poster placeholder
@@ -59,8 +62,8 @@ struct MediaCardView: View {
                                     .shimmer()
                             )
                     }
-                    .setProcessor(DownsamplingImageProcessor(size: CGSize(width: cardWidth * 2, height: cardHeight * 2)))
-                    .cacheMemoryOnly()
+                    .setProcessor(DownsamplingImageProcessor(size: CGSize(width: cardWidth * 1.5, height: cardHeight * 1.5)))
+                    .cacheOriginalImage()  // Enable disk cache for better memory management
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: cardWidth, height: cardHeight)
@@ -92,6 +95,7 @@ struct MediaCardView: View {
                     }
                 }
                 .padding(12)
+                .drawingGroup()  // Flatten badge rendering for better performance
                 Spacer()
             }
         }

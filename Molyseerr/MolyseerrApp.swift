@@ -168,26 +168,15 @@ struct RootView: View {
                 $0.type != .todaysReleases
             }
 
-            // Start preload mode with total count
-            await SliderLoadingCoordinator.shared.startPreload(totalCount: min(10, standardSliders.count))
+            // Start preload mode with total count (ALL standard sliders)
+            await SliderLoadingCoordinator.shared.startPreload(totalCount: standardSliders.count)
 
-            print("📋 Found \(enabledSliders.count) enabled sliders, prefetching first 10...")
+            print("📋 Found \(enabledSliders.count) enabled sliders, prefetching ALL standard sliders (\(standardSliders.count))...")
 
             var allPosterURLs: [URL] = []  // Collect all poster URLs for image prefetching
 
-            // Prefetch first 10 sliders (prioritize most important content)
-            let prefetchCount = min(10, standardSliders.count)
-            for slider in enabledSliders.prefix(prefetchCount) {
-                // Skip special sliders that don't use standard caching
-                if slider.type == .deletionRequests ||
-                   slider.type == .recentRequests ||
-                   slider.type == .movieGenres ||
-                   slider.type == .tvGenres ||
-                   slider.type == .studios ||
-                   slider.type == .networks ||
-                   slider.type == .todaysReleases {
-                    continue
-                }
+            // Prefetch ALL standard sliders (ensures zero freezing during scroll)
+            for slider in standardSliders {
 
                 // Check if already cached
                 let cacheKey = String(describing: slider.type.rawValue)

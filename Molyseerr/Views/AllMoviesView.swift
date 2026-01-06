@@ -23,27 +23,26 @@ struct AllMoviesView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color.Seerr.background.ignoresSafeArea()
+        ZStack {
+            Color.Seerr.background.ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    // Header with Filter Button
-                    headerSection
+            VStack(spacing: 0) {
+                // Header with Filter Button
+                headerSection
 
-                    // Content
-                    Group {
-                        if viewModel.isLoading && viewModel.movies.isEmpty {
-                            loadingView
-                        } else if let errorMessage = viewModel.errorMessage, viewModel.movies.isEmpty {
-                            errorView(message: errorMessage)
-                        } else {
-                            contentView
-                        }
+                // Content
+                Group {
+                    if viewModel.isLoading && viewModel.movies.isEmpty {
+                        loadingView
+                    } else if let errorMessage = viewModel.errorMessage, viewModel.movies.isEmpty {
+                        errorView(message: errorMessage)
+                    } else {
+                        contentView
                     }
                 }
             }
-            .task {
+        }
+        .task {
             await viewModel.loadMovies(filters: filterViewModel)
             await filterViewModel.loadGenres()
         }
@@ -74,7 +73,6 @@ struct AllMoviesView: View {
             Task {
                 await viewModel.reloadWithFilters(filters: filterViewModel)
             }
-        }
         }
     }
 

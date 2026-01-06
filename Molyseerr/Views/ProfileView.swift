@@ -16,8 +16,7 @@ struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
+        ScrollView {
                 VStack(spacing: 0) {
                     // Top section: Profile Info + Quotas (left) | Settings (right)
                     HStack(alignment: .top, spacing: 60) {
@@ -117,7 +116,6 @@ struct ProfileView: View {
                     await viewModel.loadProfile(userId: user.id)
                 }
             }
-        }
     }
 
     // MARK: - Watchlist Grid Section

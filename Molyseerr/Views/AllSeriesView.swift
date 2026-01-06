@@ -23,27 +23,26 @@ struct AllSeriesView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color.Seerr.background.ignoresSafeArea()
+        ZStack {
+            Color.Seerr.background.ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    // Header with Filter Button
-                    headerSection
+            VStack(spacing: 0) {
+                // Header with Filter Button
+                headerSection
 
-                    // Content
-                    Group {
-                        if viewModel.isLoading && viewModel.series.isEmpty {
-                            loadingView
-                        } else if let errorMessage = viewModel.errorMessage, viewModel.series.isEmpty {
-                            errorView(message: errorMessage)
-                        } else {
-                            contentView
-                        }
+                // Content
+                Group {
+                    if viewModel.isLoading && viewModel.series.isEmpty {
+                        loadingView
+                    } else if let errorMessage = viewModel.errorMessage, viewModel.series.isEmpty {
+                        errorView(message: errorMessage)
+                    } else {
+                        contentView
                     }
                 }
             }
-            .task {
+        }
+        .task {
             await viewModel.loadSeries(filters: filterViewModel)
             await filterViewModel.loadGenres()
         }
@@ -79,7 +78,6 @@ struct AllSeriesView: View {
             Task {
                 await viewModel.reloadWithFilters(filters: filterViewModel)
             }
-        }
         }
     }
 

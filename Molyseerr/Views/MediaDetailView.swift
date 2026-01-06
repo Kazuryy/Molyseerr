@@ -15,6 +15,8 @@ struct MediaDetailView: View {
 
     @StateObject private var viewModel = MediaDetailViewModel()
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.currentTab) private var currentTab
+    @State private var initialTab: MainTabView.TabItem?
 
     var body: some View {
         ZStack {
@@ -32,6 +34,23 @@ struct MediaDetailView: View {
         }
         .task {
             await viewModel.loadDetails(from: mediaResult)
+        }
+        .onAppear {
+            // Store the tab we were on when this detail view appeared
+            if initialTab == nil {
+                initialTab = currentTab
+                print("💾 MediaDetailView appeared on tab: \(currentTab)")
+            }
+        }
+        .onChange(of: currentTab) { oldTab, newTab in
+            print("🔄 currentTab onChange triggered: \(oldTab) → \(newTab), initialTab: \(String(describing: initialTab))")
+            // If the tab changed from the one we started on, dismiss this view
+            if let initial = initialTab, initial != newTab {
+                print("🚪 Tab changed from \(initial) to \(newTab) - dismissing detail view")
+                dismiss()
+            } else {
+                print("⚠️ Not dismissing: initial=\(String(describing: initialTab)), new=\(newTab)")
+            }
         }
     }
 

@@ -137,82 +137,93 @@ actor DiscoverContentService {
     /// Convert MediaInfo to MediaResult
     /// Fetches full TMDB details for each item to get poster/backdrop paths
     /// Note: MediaInfo from /api/v1/media doesn't include TMDB metadata
-    /// Optimized: Parallelizes TMDB API calls using TaskGroup for better performance
+    /// Optimized: Parallelizes TMDB API calls using TaskGroup with batching for better performance
+    /// Limits concurrent TMDB requests to prevent rate limiting
     private func convertMediaInfoToResults(_ mediaInfos: [MediaInfo]) async throws -> [MediaResult] {
         let tmdbService = TMDBService.shared
+        let maxConcurrentRequests = 10  // Limit concurrent TMDB requests
 
-        // Parallelize TMDB API calls using TaskGroup
-        let results = await withTaskGroup(of: MediaResult?.self) { group in
-            // Add tasks for each media info
-            for info in mediaInfos {
-                group.addTask {
-                    do {
-                        if info.mediaType == .movie {
-                            // Fetch movie details from TMDB
-                            let details = try await tmdbService.getMovieDetails(id: info.tmdbId)
-                            let movie = MovieResult(
-                                id: info.tmdbId,
-                                adult: details.adult,
-                                backdropPath: details.backdropPath,
-                                posterPath: details.posterPath,
-                                genreIds: details.genres?.map { $0.id },
-                                originalLanguage: details.originalLanguage,
-                                originalTitle: details.originalTitle,
-                                overview: details.overview,
-                                popularity: details.popularity,
-                                releaseDate: details.releaseDate,
-                                firstAirDate: nil,
-                                title: details.title,
-                                name: nil,
-                                originCountry: nil,
-                                originalName: nil,
-                                video: details.video ?? false,
-                                voteAverage: details.voteAverage,
-                                voteCount: details.voteCount,
-                                mediaType: "movie",
-                                mediaInfo: info  // Include original MediaInfo for status
-                            )
-                            return .movie(movie)
-                        } else {
-                            // Fetch TV details from TMDB
-                            let details = try await tmdbService.getTVDetails(id: info.tmdbId)
-                            let tv = TVResult(
-                                id: info.tmdbId,
-                                backdropPath: details.backdropPath,
-                                posterPath: details.posterPath,
-                                genreIds: details.genres?.map { $0.id },
-                                originalLanguage: details.originalLanguage,
-                                originalName: details.originalName,
-                                overview: details.overview,
-                                popularity: details.popularity,
-                                firstAirDate: details.firstAirDate,
-                                name: details.name,
-                                voteAverage: details.voteAverage,
-                                voteCount: details.voteCount,
-                                originCountry: details.originCountry,
-                                mediaType: "tv",
-                                mediaInfo: info  // Include original MediaInfo for status
-                            )
-                            return .tv(tv)
-                        }
-                    } catch {
-                        // Skip items that fail to load TMDB details
-                        return nil
-                    }
-                }
-            }
-
-            // Collect results
-            var collected: [MediaResult] = []
-            for await result in group {
-                if let result = result {
-                    collected.append(result)
-                }
-            }
-            return collected
+        // Process in batches to avoid overwhelming TMDB API
+        var allResults: [MediaResult] = []
+        let batches = stride(from: 0, to: mediaInfos.count, by: maxConcurrentRequests).map {
+            Array(mediaInfos[$0..<min($0 + maxConcurrentRequests, mediaInfos.count)])
         }
 
-        return results
+        for batch in batches {
+            let batchResults = await withTaskGroup(of: MediaResult?.self) { group in
+                // Add tasks for each media info in this batch
+                for info in batch {
+                    group.addTask {
+                        do {
+                            if info.mediaType == .movie {
+                                // Fetch movie details from TMDB
+                                let details = try await tmdbService.getMovieDetails(id: info.tmdbId)
+                                let movie = MovieResult(
+                                    id: info.tmdbId,
+                                    adult: details.adult,
+                                    backdropPath: details.backdropPath,
+                                    posterPath: details.posterPath,
+                                    genreIds: details.genres?.map { $0.id },
+                                    originalLanguage: details.originalLanguage,
+                                    originalTitle: details.originalTitle,
+                                    overview: details.overview,
+                                    popularity: details.popularity,
+                                    releaseDate: details.releaseDate,
+                                    firstAirDate: nil,
+                                    title: details.title,
+                                    name: nil,
+                                    originCountry: nil,
+                                    originalName: nil,
+                                    video: details.video ?? false,
+                                    voteAverage: details.voteAverage,
+                                    voteCount: details.voteCount,
+                                    mediaType: "movie",
+                                    mediaInfo: info  // Include original MediaInfo for status
+                                )
+                                return .movie(movie)
+                            } else {
+                                // Fetch TV details from TMDB
+                                let details = try await tmdbService.getTVDetails(id: info.tmdbId)
+                                let tv = TVResult(
+                                    id: info.tmdbId,
+                                    backdropPath: details.backdropPath,
+                                    posterPath: details.posterPath,
+                                    genreIds: details.genres?.map { $0.id },
+                                    originalLanguage: details.originalLanguage,
+                                    originalName: details.originalName,
+                                    overview: details.overview,
+                                    popularity: details.popularity,
+                                    firstAirDate: details.firstAirDate,
+                                    name: details.name,
+                                    voteAverage: details.voteAverage,
+                                    voteCount: details.voteCount,
+                                    originCountry: details.originCountry,
+                                    mediaType: "tv",
+                                    mediaInfo: info  // Include original MediaInfo for status
+                                )
+                                return .tv(tv)
+                            }
+                        } catch {
+                            // Skip items that fail to load TMDB details
+                            return nil
+                        }
+                    }
+                }
+
+                // Collect batch results
+                var collected: [MediaResult] = []
+                for await result in group {
+                    if let result = result {
+                        collected.append(result)
+                    }
+                }
+                return collected
+            }
+
+            allResults.append(contentsOf: batchResults)
+        }
+
+        return allResults
     }
 
     /// Convert MediaRequest to MediaResult
