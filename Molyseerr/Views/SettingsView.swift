@@ -13,6 +13,7 @@ struct SettingsView: View {
     @EnvironmentObject var configManager: ConfigManager
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = SettingsViewModel()
+    @StateObject private var featureFlags = FeatureFlagsManager.shared
 
     @State private var isLoggingOut: Bool = false
     @State private var showLogoutConfirmation: Bool = false
@@ -97,6 +98,32 @@ struct SettingsView: View {
             Text("TopShelf (Home Screen)")
         } footer: {
             Text("Configure what sliders appear on your tvOS home screen when Molyseerr is focused")
+                .foregroundColor(.Seerr.secondaryText)
+        }
+
+        // Docker Features Section
+        Section {
+            FeatureFlagToggle(
+                "Calendar & Today's Releases",
+                description: "Show calendar slider with today's releases",
+                isOn: $featureFlags.flags.calendarEnabled
+            )
+
+            FeatureFlagToggle(
+                "Available Movies & Series",
+                description: "Show sliders for media already in your library",
+                isOn: $featureFlags.flags.availableMediaEnabled
+            )
+
+            FeatureFlagToggle(
+                "Deletion Requests & Voting",
+                description: "Enable voting system and deletion requests features",
+                isOn: $featureFlags.flags.deletionRequestsEnabled
+            )
+        } header: {
+            Text("Docker Features")
+        } footer: {
+            Text("These features require a custom Seerr Docker image. Disable them if your server doesn't support these endpoints.")
                 .foregroundColor(.Seerr.secondaryText)
         }
 
@@ -278,6 +305,40 @@ struct SettingsView: View {
 }
 
 // MARK: - Settings Components
+
+/// Feature flag toggle row
+struct FeatureFlagToggle: View {
+    let title: String
+    let description: String
+    @Binding var isOn: Bool
+
+    @FocusState private var isFocused: Bool
+
+    init(_ title: String, description: String, isOn: Binding<Bool>) {
+        self.title = title
+        self.description = description
+        self._isOn = isOn
+    }
+
+    var body: some View {
+        Toggle(isOn: $isOn) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(title)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(isFocused ? .black : .white)
+
+                Text(description)
+                    .font(.system(size: 18))
+                    .foregroundColor(isFocused ? .black.opacity(0.7) : .Seerr.secondaryText)
+            }
+            .padding(.vertical, 8)
+        }
+        .toggleStyle(.switch)
+        .focused($isFocused)
+        .scaleEffect(isFocused ? 1.02 : 1.0)
+        .animation(.easeInOut(duration: 0.125), value: isFocused)
+    }
+}
 
 /// Navigation row for TopShelf settings
 struct TopShelfNavigationRow: View {

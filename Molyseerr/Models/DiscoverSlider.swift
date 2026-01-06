@@ -115,4 +115,48 @@ enum SliderType: Int, Codable {
             return "/api/v1/discover/tv" // TODO: Add network filtering
         }
     }
+
+    /// Check if this slider type is a Docker-specific feature
+    var isDockerFeature: Bool {
+        switch self {
+        case .todaysReleases:
+            return true // Calendar feature
+        case .availableMovies, .availableTV:
+            return true // Available media feature
+        case .deletionRequests, .expiringSoon:
+            return true // Deletion requests/voting feature
+        default:
+            return false
+        }
+    }
+
+    /// Check if this slider should be shown based on feature flags
+    func isAvailable(with flags: FeatureFlags) -> Bool {
+        switch self {
+        case .todaysReleases:
+            return flags.calendarEnabled
+        case .availableMovies, .availableTV:
+            return flags.availableMediaEnabled
+        case .deletionRequests, .expiringSoon:
+            return flags.deletionRequestsEnabled
+        default:
+            return true // Standard sliders are always available
+        }
+    }
+}
+
+// MARK: - DiscoverSlider Extensions
+
+extension DiscoverSlider {
+    /// Check if this slider should be shown based on feature flags
+    func isAvailable(with flags: FeatureFlags) -> Bool {
+        type.isAvailable(with: flags)
+    }
+}
+
+extension Array where Element == DiscoverSlider {
+    /// Filter sliders based on feature flags
+    func filterByFeatureFlags(_ flags: FeatureFlags) -> [DiscoverSlider] {
+        filter { $0.isAvailable(with: flags) }
+    }
 }

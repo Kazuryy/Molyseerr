@@ -175,10 +175,12 @@ final class TopShelfConfigViewModel: ObservableObject {
 
         do {
             let sliders = try await seerrService.getDiscoverSliders()
+            let flags = FeatureFlagsManager.shared.flags
 
-            // Filter out unsupported types (genres, studios, networks)
+            // Filter out unsupported types (genres, studios, networks) and disabled Docker features
             availableSliders = sliders
                 .filter { $0.enabled && TopShelfSettings.isSliderTypeSupported($0.type.rawValue) }
+                .filterByFeatureFlags(flags)
                 .sorted { $0.order < $1.order }
                 .map { slider in
                     TopShelfSlider(
@@ -191,7 +193,7 @@ final class TopShelfConfigViewModel: ObservableObject {
                     )
                 }
 
-            print("📱 Loaded \(availableSliders.count) supported sliders")
+            print("📱 Loaded \(availableSliders.count) supported sliders (after feature flags filter)")
 
             // Clean up selected sliders - remove any that are no longer available
             let availableIDs = Set(availableSliders.map { $0.id })

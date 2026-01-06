@@ -20,9 +20,13 @@ class DiscoverViewModel: ObservableObject {
     /// Array of all slider configurations from server
     @Published var allSliders: [DiscoverSlider] = []
 
-    /// Filtered array of enabled sliders in correct order
+    /// Filtered array of enabled sliders in correct order (respecting feature flags)
     var enabledSliders: [DiscoverSlider] {
-        allSliders.filter { $0.enabled }.sorted { $0.order < $1.order }
+        let flags = FeatureFlagsManager.shared.flags
+        return allSliders
+            .filter { $0.enabled }
+            .filterByFeatureFlags(flags)
+            .sorted { $0.order < $1.order }
     }
 
     /// Loading state indicator
