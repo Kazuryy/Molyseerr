@@ -20,12 +20,7 @@ struct MediaCardViewSimple: View {
     private let cornerRadius: CGFloat = 8
 
     var body: some View {
-        NavigationLink {
-            MediaDetailView(mediaResult: item)
-        } label: {
-            posterView
-        }
-        .buttonStyle(.plain)  // Plain style - focus handled by UIKit
+        posterView
     }
 
     // MARK: - Subviews

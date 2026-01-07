@@ -13,6 +13,7 @@ struct HorizontalMediaRow: View {
     let title: String
     let items: [MediaResult]
     var isLoading: Bool = false  // Show skeleton loaders when loading
+    var onSelect: ((MediaResult) -> Void)?  // Callback when item is selected
 
     // MARK: - Constants
     private let cardSpacing: CGFloat = 40
@@ -52,7 +53,8 @@ struct HorizontalMediaRow: View {
                     itemHeight: 375,
                     spacing: cardSpacing,
                     horizontalPadding: horizontalPadding,
-                    verticalPadding: verticalPadding
+                    verticalPadding: verticalPadding,
+                    onSelect: onSelect
                 ) { item in
                     MediaCardViewSimple(item: item)
                 }

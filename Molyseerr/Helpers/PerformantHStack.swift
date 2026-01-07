@@ -20,6 +20,7 @@ struct PerformantHStack<Item: Identifiable & Hashable, Content: View>: UIViewRep
     let horizontalPadding: CGFloat
     let verticalPadding: CGFloat
     let content: (Item) -> Content
+    let onSelect: ((Item) -> Void)?
 
     init(
         items: [Item],
@@ -28,6 +29,7 @@ struct PerformantHStack<Item: Identifiable & Hashable, Content: View>: UIViewRep
         spacing: CGFloat = 40,
         horizontalPadding: CGFloat = 60,
         verticalPadding: CGFloat = 40,
+        onSelect: ((Item) -> Void)? = nil,
         @ViewBuilder content: @escaping (Item) -> Content
     ) {
         self.items = items
@@ -36,6 +38,7 @@ struct PerformantHStack<Item: Identifiable & Hashable, Content: View>: UIViewRep
         self.spacing = spacing
         self.horizontalPadding = horizontalPadding
         self.verticalPadding = verticalPadding
+        self.onSelect = onSelect
         self.content = content
     }
 
@@ -112,6 +115,12 @@ struct PerformantHStack<Item: Identifiable & Hashable, Content: View>: UIViewRep
         // Enable focus on tvOS
         func collectionView(_ collectionView: UICollectionView, canFocusItemAt indexPath: IndexPath) -> Bool {
             return true
+        }
+
+        // Handle selection (tap on tvOS)
+        func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+            let item = parent.items[indexPath.item]
+            parent.onSelect?(item)
         }
     }
 
