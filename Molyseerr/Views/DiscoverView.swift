@@ -14,10 +14,12 @@ struct DiscoverView: View {
     @StateObject private var viewModel = DiscoverViewModel()
     @StateObject private var watchlistManager = WatchlistManager.shared
     @EnvironmentObject var configManager: ConfigManager
+    @Environment(\.currentTab) private var currentTab
 
     // Navigation states for studios and networks
     @State private var selectedStudio: Company?
     @State private var selectedNetwork: Company?
+    @State private var selectedMedia: MediaResult?
 
     var body: some View {
         ZStack {
@@ -49,8 +51,17 @@ struct DiscoverView: View {
         .navigationDestination(item: $selectedNetwork) { network in
             NetworkDetailView(network: network)
         }
-        .navigationDestination(for: MediaResult.self) { mediaResult in
+        .navigationDestination(item: $selectedMedia) { mediaResult in
             MediaDetailView(mediaResult: mediaResult)
+        }
+        .onChange(of: currentTab) { _, newTab in
+            // Clear navigation state when user switches away from this tab
+            if newTab != .discover {
+                print("🔄 Tab switched away from Discover, clearing navigation")
+                selectedMedia = nil
+                selectedStudio = nil
+                selectedNetwork = nil
+            }
         }
         .task {
             // Load slider configuration and watchlist when view appears
@@ -144,7 +155,10 @@ struct DiscoverView: View {
                     DiscoverSliderRow(
                         slider: slider,
                         selectedStudio: $selectedStudio,
-                        selectedNetwork: $selectedNetwork
+                        selectedNetwork: $selectedNetwork,
+                        onMediaSelect: { media in
+                            selectedMedia = media
+                        }
                     )
                     .id(slider.id)  // Stable ID per slider for better diffing
                 }
@@ -204,6 +218,7 @@ struct DiscoverSliderRow: View {
     // Bindings for navigation
     @Binding var selectedStudio: Company?
     @Binding var selectedNetwork: Company?
+    var onMediaSelect: ((MediaResult) -> Void)?
 
     @State private var items: [MediaResult] = []
     @State private var calendarItems: [CalendarItem] = []  // For Today's Releases
@@ -244,11 +259,11 @@ struct DiscoverSliderRow: View {
                 } else if showNetworks {
                     NetworksRow(slider: slider, selectedNetwork: $selectedNetwork)
                 } else {
-                    HorizontalMediaRow(title: slider.displayTitle, items: items, isLoading: false)
+                    HorizontalMediaRow(title: slider.displayTitle, items: items, isLoading: false, onSelect: onMediaSelect)
                 }
             } else {
                 // Skeleton loading state while not loaded
-                HorizontalMediaRow(title: slider.displayTitle, items: [], isLoading: true)
+                HorizontalMediaRow(title: slider.displayTitle, items: [], isLoading: true, onSelect: onMediaSelect)
             }
         }
         .onAppear {

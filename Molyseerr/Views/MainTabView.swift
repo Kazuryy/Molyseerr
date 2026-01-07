@@ -24,7 +24,6 @@ extension EnvironmentValues {
 struct MainTabView: View {
     @EnvironmentObject var configManager: ConfigManager
     @State private var selectedTab: TabItem = .discover
-    @State private var tabViewID = UUID()
 
     enum TabItem: Equatable {
         case discover
@@ -37,20 +36,7 @@ struct MainTabView: View {
     }
 
     var body: some View {
-        TabView(selection: Binding(
-            get: { selectedTab },
-            set: { newTab in
-                let oldTab = selectedTab
-                selectedTab = newTab
-
-                // Only reset if actually changed tabs
-                if oldTab != newTab {
-                    print("🔄 Tab changed: \(oldTab) → \(newTab) - clearing ALL navigation")
-                    // Force complete TabView recreation to clear all navigation stacks
-                    tabViewID = UUID()
-                }
-            }
-        )) {
+        TabView(selection: $selectedTab) {
             NavigationStack {
                 DiscoverView()
             }
@@ -105,15 +91,17 @@ struct MainTabView: View {
             .tag(TabItem.profile)
             .environmentObject(configManager)
 
-            SettingsView()
-                .tabItem {
-                    Label("Settings", systemImage: "gear")
-                }
-                .tag(TabItem.settings)
-                .environmentObject(configManager)
+            NavigationStack {
+                SettingsView()
+            }
+            .tabItem {
+                Label("Settings", systemImage: "gear")
+            }
+            .tag(TabItem.settings)
+            .environmentObject(configManager)
         }
-        .id(tabViewID)  // Force complete recreation when ID changes
         .tabViewStyle(.sidebarAdaptable)
+        .environment(\.currentTab, selectedTab)
     }
 }
 
