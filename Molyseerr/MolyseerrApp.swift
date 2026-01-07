@@ -45,6 +45,7 @@ struct RootView: View {
     @State private var isPreloadingContent = false
     @State private var preloadProgress: Double = 0.0
     @State private var deepLinkURL: URL?
+    @State private var hasStartedTopShelfRefresh = false
 
     var body: some View {
         Group {
@@ -141,7 +142,19 @@ struct RootView: View {
                         await prefetchDiscoverContent()
                     }
                 }
+
+                // ⚡️ Start TopShelf background refresh (ensures instant TopShelf loading)
+                if !hasStartedTopShelfRefresh {
+                    hasStartedTopShelfRefresh = true
+                    await MainActor.run {
+                        TopShelfBackgroundRefresher.shared.startAutoRefresh()
+                    }
+                }
             }
+        }
+        .onDisappear {
+            // Stop TopShelf refresh when app closes
+            TopShelfBackgroundRefresher.shared.stopAutoRefresh()
         }
     }
 

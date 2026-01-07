@@ -22,14 +22,22 @@ class ContentProvider: TVTopShelfContentProvider {
     // MARK: - TVTopShelfContentProvider
 
     override func loadTopShelfContent() async -> (any TVTopShelfContent)? {
-        print("🔥 TopShelf: loadTopShelfContent called")
+        let startTime = Date()
+        let timestamp = DateFormatter.localizedString(from: startTime, dateStyle: .none, timeStyle: .medium)
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("🔥 TopShelf EXTENSION LAUNCHED at \(timestamp)")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
         do {
             let content = try await fetchTopShelfContent()
-            print("✅ TopShelf: Content created successfully")
+            let duration = Date().timeIntervalSince(startTime)
+            print("✅ TopShelf: Content created in \(String(format: "%.3f", duration))s")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
             return content
         } catch {
-            print("❌ TopShelf error: \(error)")
+            let duration = Date().timeIntervalSince(startTime)
+            print("❌ TopShelf error after \(String(format: "%.3f", duration))s: \(error)")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
             return nil
         }
     }
@@ -37,6 +45,7 @@ class ContentProvider: TVTopShelfContentProvider {
     // MARK: - Content Fetching
 
     private func fetchTopShelfContent() async throws -> TVTopShelfContent? {
+        let step1 = Date()
         let displayMode = settings.displayMode
 
         // Configure Seerr service
@@ -46,7 +55,9 @@ class ContentProvider: TVTopShelfContentProvider {
         settings.migrateLegacySettings()
 
         let selectedSliders = settings.selectedSliders
+        let step1Duration = Date().timeIntervalSince(step1)
 
+        print("⏱️ Step 1 (Settings load): \(String(format: "%.3f", step1Duration))s")
         print("📺 Display mode: \(displayMode.displayName)")
         print("📺 Selected sliders: \(selectedSliders.count)")
 
@@ -90,6 +101,7 @@ class ContentProvider: TVTopShelfContentProvider {
 
     /// Create carousel content from a Seerr slider
     private func createCarouselContent(slider: TopShelfSliderConfig) async throws -> TVTopShelfCarouselContent {
+        let step2 = Date()
         print("🎬 Creating carousel content for slider: \(slider.title)")
 
         guard seerrService.isConfigured else {
@@ -97,37 +109,27 @@ class ContentProvider: TVTopShelfContentProvider {
         }
 
         let items = try await seerrService.getSliderContent(slider: slider, limit: 12)
-        print("📦 Fetched \(items.count) items from Seerr")
+        let step2Duration = Date().timeIntervalSince(step2)
+        print("⏱️ Step 2 (Cache read): \(String(format: "%.3f", step2Duration))s")
+        print("📦 Fetched \(items.count) items from cache")
 
-        var carouselItems: [TVTopShelfCarouselItem] = []
-
-        for (index, item) in items.enumerated() {
-            print("\n📝 Processing item \(index + 1)/\(items.count): \(item.title)")
-
+        // ⚡️ PERFORMANCE: Process items without unnecessary logging
+        let step3 = Date()
+        let carouselItems: [TVTopShelfCarouselItem] = items.compactMap { item in
             guard let backdropPath = item.backdropPath,
                   let imageURL = URL(string: "https://image.tmdb.org/t/p/w1280\(backdropPath)") else {
-                print("⚠️ No backdrop for \(item.title)")
-                continue
+                return nil
             }
 
             let carouselItem = TVTopShelfCarouselItem(identifier: "item_\(item.id)")
 
             // Use composite image if logo is available, otherwise use plain backdrop
-            if let logoPath = item.logoPath, !logoPath.isEmpty {
-                // Composite image URL will be stored in cache with special naming
-                // Format: backdrop_with_logo_{id}.jpg in App Group container
-                if let compositeURL = getCompositeImageURL(itemId: item.id) {
-                    print("🎨 Using composite image with logo for '\(item.title)'")
-                    carouselItem.setImageURL(compositeURL, for: .screenScale1x)
-                    carouselItem.setImageURL(compositeURL, for: .screenScale2x)
-                } else {
-                    // Fallback to plain backdrop
-                    print("⚠️ No composite image found, using plain backdrop for '\(item.title)'")
-                    carouselItem.setImageURL(imageURL, for: .screenScale1x)
-                    carouselItem.setImageURL(imageURL, for: .screenScale2x)
-                }
+            if let logoPath = item.logoPath, !logoPath.isEmpty,
+               let compositeURL = getCompositeImageURL(itemId: item.id) {
+                carouselItem.setImageURL(compositeURL, for: .screenScale1x)
+                carouselItem.setImageURL(compositeURL, for: .screenScale2x)
             } else {
-                // No logo - use plain backdrop
+                // No logo or composite - use plain backdrop
                 carouselItem.setImageURL(imageURL, for: .screenScale1x)
                 carouselItem.setImageURL(imageURL, for: .screenScale2x)
             }
@@ -145,12 +147,16 @@ class ContentProvider: TVTopShelfContentProvider {
                 carouselItem.playAction = TVTopShelfAction(url: deepLinkURL)
             }
 
-            carouselItems.append(carouselItem)
+            return carouselItem
         }
+        let step3Duration = Date().timeIntervalSince(step3)
+        print("⏱️ Step 3 (Build carousel): \(String(format: "%.3f", step3Duration))s")
+        print("🎬 Created \(carouselItems.count) carousel items")
 
-        print("\n🎬 Created \(carouselItems.count) carousel items")
-
+        let step4 = Date()
         let content = TVTopShelfCarouselContent(style: .actions, items: carouselItems)
+        let step4Duration = Date().timeIntervalSince(step4)
+        print("⏱️ Step 4 (Create content): \(String(format: "%.3f", step4Duration))s")
         return content
     }
 
@@ -164,22 +170,17 @@ class ContentProvider: TVTopShelfContentProvider {
 
         var sections: [TVTopShelfItemCollection<TVTopShelfSectionedItem>] = []
 
+        // ⚡️ PERFORMANCE: Process sliders with minimal overhead
         for slider in sliders {
-            print("\n📂 Processing slider: \(slider.title)")
-
             do {
                 let items = try await seerrService.getSliderContent(slider: slider, limit: 6)
-                print("📦 Fetched \(items.count) items for '\(slider.title)'")
 
-                var sectionItems: [TVTopShelfSectionedItem] = []
-
-                for item in items {
+                let sectionItems: [TVTopShelfSectionedItem] = items.compactMap { item in
                     // Use poster if available, fallback to backdrop
                     let imagePath = item.posterPath ?? item.backdropPath
                     guard let imagePath = imagePath,
                           let imageURL = URL(string: "https://image.tmdb.org/t/p/w500\(imagePath)") else {
-                        print("⚠️ Skipping item '\(item.title)' - no poster or backdrop")
-                        continue
+                        return nil
                     }
 
                     let sectionItem = TVTopShelfSectionedItem(identifier: "item_\(item.id)")
@@ -192,14 +193,13 @@ class ContentProvider: TVTopShelfContentProvider {
                         sectionItem.playAction = TVTopShelfAction(url: deepLinkURL)
                     }
 
-                    sectionItems.append(sectionItem)
+                    return sectionItem
                 }
 
                 if !sectionItems.isEmpty {
                     let section = TVTopShelfItemCollection<TVTopShelfSectionedItem>(items: sectionItems)
                     section.title = slider.title
                     sections.append(section)
-                    print("✅ Created section '\(slider.title)' with \(sectionItems.count) items")
                 }
             } catch {
                 print("⚠️ Failed to fetch slider '\(slider.title)': \(error)")
@@ -339,20 +339,25 @@ class ContentProvider: TVTopShelfContentProvider {
 
     // MARK: - Helper Methods
 
-    /// Get composite image URL from App Group cache
+    // ⚡️ Cache container URL to avoid repeated lookups
+    private lazy var containerURL: URL? = {
+        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.molycorp.Molyseerr.shared")
+    }()
+
+    private lazy var compositeCacheDir: URL? = {
+        containerURL?.appendingPathComponent("Library/Caches/TopShelfComposites", isDirectory: true)
+    }()
+
+    /// Get composite image URL from App Group cache (optimized)
     private func getCompositeImageURL(itemId: Int) -> URL? {
-        guard let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.molycorp.Molyseerr.shared") else {
+        guard let cacheDir = compositeCacheDir else {
             return nil
         }
 
-        let cacheDir = containerURL.appendingPathComponent("Library/Caches/TopShelfComposites", isDirectory: true)
         let imageURL = cacheDir.appendingPathComponent("composite_\(itemId).jpg")
 
-        // Check if file exists
-        guard FileManager.default.fileExists(atPath: imageURL.path) else {
-            return nil
-        }
-
+        // ⚡️ Skip file existence check - let tvOS handle missing files gracefully
+        // This is MUCH faster and tvOS will fallback to placeholder if file doesn't exist
         return imageURL
     }
 

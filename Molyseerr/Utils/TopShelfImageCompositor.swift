@@ -20,6 +20,8 @@ class TopShelfImageCompositor {
 
     private let appGroupID = "group.com.molycorp.Molyseerr.shared"
     private var cacheDirectory: URL?
+    private let fileManager = FileManager.default // ⚡️ Reuse FileManager instance
+    private var cachedCompositeExists: [Int: Bool] = [:] // ⚡️ Cache existence checks
 
     // MARK: - Initialization
 
@@ -28,7 +30,7 @@ class TopShelfImageCompositor {
     }
 
     private func setupCacheDirectory() {
-        guard let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupID) else {
+        guard let containerURL = fileManager.containerURL(forSecurityApplicationGroupIdentifier: appGroupID) else {
             print("❌ Failed to access App Group container")
             return
         }
@@ -37,7 +39,7 @@ class TopShelfImageCompositor {
 
         // Create cache directory if it doesn't exist
         if let cacheDir = cacheDirectory {
-            try? FileManager.default.createDirectory(at: cacheDir, withIntermediateDirectories: true)
+            try? fileManager.createDirectory(at: cacheDir, withIntermediateDirectories: true)
         }
     }
 
@@ -50,15 +52,24 @@ class TopShelfImageCompositor {
     ///   - itemId: Unique identifier for caching
     /// - Returns: URL to composite image in App Group cache, or nil if failed
     func compositeImages(backdropURL: URL, logoURL: URL, itemId: Int) async throws -> URL? {
-        // Check if composite already exists
+        // ⚡️ Check in-memory cache first (avoids file system check)
+        if cachedCompositeExists[itemId] == true {
+            if let cachedURL = getCachedCompositeURLFast(itemId: itemId) {
+                print("✅ Using cached composite for item \(itemId) (in-memory check)")
+                return cachedURL
+            }
+        }
+
+        // ⚡️ Check if composite already exists on disk
         if let cachedURL = getCachedCompositeURL(itemId: itemId) {
+            cachedCompositeExists[itemId] = true // Cache the result
             print("✅ Using cached composite for item \(itemId)")
             return cachedURL
         }
 
         print("🎨 Creating composite image for item \(itemId)")
 
-        // Download images
+        // ⚡️ Download images in parallel (already optimized)
         async let backdropData = URLSession.shared.data(from: backdropURL)
         async let logoData = URLSession.shared.data(from: logoURL)
 
@@ -77,14 +88,20 @@ class TopShelfImageCompositor {
         }
 
         // Save to cache
-        return saveComposite(compositeImage, itemId: itemId)
+        if let savedURL = saveComposite(compositeImage, itemId: itemId) {
+            cachedCompositeExists[itemId] = true // Update in-memory cache
+            return savedURL
+        }
+
+        return nil
     }
 
     /// Clear all cached composite images
     func clearCache() {
         guard let cacheDir = cacheDirectory else { return }
 
-        try? FileManager.default.removeItem(at: cacheDir)
+        try? fileManager.removeItem(at: cacheDir)
+        cachedCompositeExists.removeAll() // ⚡️ Clear in-memory cache
         setupCacheDirectory()
         print("🗑️ Cleared TopShelf composite image cache")
     }
@@ -128,7 +145,7 @@ class TopShelfImageCompositor {
         let fileURL = cacheDir.appendingPathComponent("composite_\(itemId).jpg")
 
         // Convert to JPEG with high quality
-        guard let jpegData = image.jpegData(compressionQuality: 0.85) else {
+        guard let jpegData = image.jpegData(compressionQuality: 0.90) else {
             print("❌ Failed to convert composite to JPEG")
             return nil
         }
@@ -143,16 +160,22 @@ class TopShelfImageCompositor {
         }
     }
 
-    /// Get cached composite URL if it exists
+    /// Get cached composite URL if it exists (with file system check)
     private func getCachedCompositeURL(itemId: Int) -> URL? {
         guard let cacheDir = cacheDirectory else { return nil }
 
         let fileURL = cacheDir.appendingPathComponent("composite_\(itemId).jpg")
 
-        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+        guard fileManager.fileExists(atPath: fileURL.path) else {
             return nil
         }
 
         return fileURL
+    }
+
+    /// ⚡️ Fast composite URL retrieval (skips file system check, uses in-memory cache)
+    private func getCachedCompositeURLFast(itemId: Int) -> URL? {
+        guard let cacheDir = cacheDirectory else { return nil }
+        return cacheDir.appendingPathComponent("composite_\(itemId).jpg")
     }
 }

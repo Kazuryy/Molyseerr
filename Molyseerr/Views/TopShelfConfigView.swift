@@ -263,89 +263,104 @@ final class TopShelfConfigViewModel: ObservableObject {
 
             // Convert to cache format and fetch logos
             var isFirstItem = true
-            var cacheItems: [[String: String]] = []
 
-            for item in items {
-                // Extract ID from MediaResult
-                let id: Int
-                let title: String
-                let posterPath: String
-                let backdropPath: String
-                let overview: String
-                let mediaType: String
+            // ⚡️ PERFORMANCE OPTIMIZATION: Parallelize TMDB logo fetching using TaskGroup
+            let cacheItems = await withTaskGroup(of: [String: String]?.self) { group in
+                var results: [[String: String]] = []
 
-                switch item {
-                case .movie(let movie):
-                    id = movie.id
-                    title = movie.title ?? ""
-                    posterPath = movie.posterPath ?? ""
-                    backdropPath = movie.backdropPath ?? ""
-                    overview = movie.overview ?? ""
-                    mediaType = "movie"
-                case .tv(let tv):
-                    id = tv.id
-                    title = tv.name
-                    posterPath = tv.posterPath ?? ""
-                    backdropPath = tv.backdropPath ?? ""
-                    overview = tv.overview ?? ""
-                    mediaType = "tv"
-                }
+                for item in items {
+                    group.addTask {
+                        // Extract ID from MediaResult
+                        let id: Int
+                        let title: String
+                        let posterPath: String
+                        let backdropPath: String
+                        let overview: String
+                        let mediaType: String
 
-                // Log first item to verify correct content
-                if isFirstItem {
-                    print("📝 First cached item: \(title) (ID: \(id), type: \(mediaType))")
-                    isFirstItem = false
-                }
+                        switch item {
+                        case .movie(let movie):
+                            id = movie.id
+                            title = movie.title ?? ""
+                            posterPath = movie.posterPath ?? ""
+                            backdropPath = movie.backdropPath ?? ""
+                            overview = movie.overview ?? ""
+                            mediaType = "movie"
+                        case .tv(let tv):
+                            id = tv.id
+                            title = tv.name
+                            posterPath = tv.posterPath ?? ""
+                            backdropPath = tv.backdropPath ?? ""
+                            overview = tv.overview ?? ""
+                            mediaType = "tv"
+                        }
 
-                // Fetch logo from TMDB and create composite image
-                var logoPath = ""
-                do {
-                    let images: TMDBImages
-                    if mediaType == "movie" {
-                        images = try await TMDBService.shared.getMovieImages(id: id)
-                    } else {
-                        images = try await TMDBService.shared.getTVImages(id: id)
-                    }
+                        // Fetch logo from TMDB and create composite image
+                        var logoPath = ""
+                        do {
+                            let images: TMDBImages
+                            if mediaType == "movie" {
+                                images = try await TMDBService.shared.getMovieImages(id: id)
+                            } else {
+                                images = try await TMDBService.shared.getTVImages(id: id)
+                            }
 
-                    // Get the best logo (highest vote average, or first if no votes)
-                    if let logos = images.logos, !logos.isEmpty {
-                        let bestLogo = logos.max(by: { ($0.voteAverage ?? 0) < ($1.voteAverage ?? 0) })
-                        logoPath = bestLogo?.filePath ?? ""
+                            // Get the best logo (highest vote average, or first if no votes)
+                            if let logos = images.logos, !logos.isEmpty {
+                                let bestLogo = logos.max(by: { ($0.voteAverage ?? 0) < ($1.voteAverage ?? 0) })
+                                logoPath = bestLogo?.filePath ?? ""
 
-                        if !logoPath.isEmpty, !backdropPath.isEmpty {
-                            print("🎨 Found logo for '\(title)': \(logoPath)")
+                                if !logoPath.isEmpty, !backdropPath.isEmpty {
+                                    print("🎨 Found logo for '\(title)': \(logoPath)")
 
-                            // Create composite image (backdrop + logo)
-                            if let backdropURL = URL(string: "https://image.tmdb.org/t/p/w1280\(backdropPath)"),
-                               let logoURL = URL(string: "https://image.tmdb.org/t/p/w500\(logoPath)") {
-                                do {
-                                    _ = try await TopShelfImageCompositor.shared.compositeImages(
-                                        backdropURL: backdropURL,
-                                        logoURL: logoURL,
-                                        itemId: id
-                                    )
-                                    print("✅ Created composite image for '\(title)'")
-                                } catch {
-                                    print("⚠️ Failed to create composite for '\(title)': \(error)")
-                                    // Continue - will use plain backdrop
+                                    // Create composite image (backdrop + logo)
+                                    if let backdropURL = URL(string: "https://image.tmdb.org/t/p/w1280\(backdropPath)"),
+                                       let logoURL = URL(string: "https://image.tmdb.org/t/p/w500\(logoPath)") {
+                                        do {
+                                            _ = try await TopShelfImageCompositor.shared.compositeImages(
+                                                backdropURL: backdropURL,
+                                                logoURL: logoURL,
+                                                itemId: id
+                                            )
+                                            print("✅ Created composite image for '\(title)'")
+                                        } catch {
+                                            print("⚠️ Failed to create composite for '\(title)': \(error)")
+                                            // Continue - will use plain backdrop
+                                        }
+                                    }
                                 }
                             }
+                        } catch {
+                            print("⚠️ Failed to fetch logo for '\(title)' (ID: \(id)): \(error)")
+                            // Continue without logo
                         }
+
+                        var dict: [String: String] = [:]
+                        dict["id"] = "\(id)"
+                        dict["title"] = title
+                        dict["mediaType"] = mediaType
+                        dict["posterPath"] = posterPath
+                        dict["backdropPath"] = backdropPath
+                        dict["overview"] = overview
+                        dict["logoPath"] = logoPath
+
+                        return dict
                     }
-                } catch {
-                    print("⚠️ Failed to fetch logo for '\(title)' (ID: \(id)): \(error)")
-                    // Continue without logo
                 }
 
-                var dict: [String: String] = [:]
-                dict["id"] = "\(id)"
-                dict["title"] = title
-                dict["mediaType"] = mediaType
-                dict["posterPath"] = posterPath
-                dict["backdropPath"] = backdropPath
-                dict["overview"] = overview
-                dict["logoPath"] = logoPath
-                cacheItems.append(dict)
+                // Collect results in order
+                for await result in group {
+                    if let item = result {
+                        results.append(item)
+                    }
+                }
+
+                return results
+            }
+
+            // Log first item to verify correct content
+            if let firstItem = cacheItems.first {
+                print("📝 First cached item: \(firstItem["title"] ?? "nil") (ID: \(firstItem["id"] ?? "nil"), type: \(firstItem["mediaType"] ?? "nil"))")
             }
 
             // Save to TopShelf settings
